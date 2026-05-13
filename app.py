@@ -1,17 +1,38 @@
-""" Applicacion Principal
-Administra:
-- CORS
-- Blueprints
-- Configuraciones Globales
-"""
-
 from flask import Flask
+from flask_cors import CORS
+from database.db import build_initial_database
 
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
 
-@app.route("/", methods=["GET"])
-def main():
-    return {"Mensaje": "Back-End Corriendo"}
+    # 1. Configuraciones Globales
+    app.config['JSON_AS_ASCII'] = False  # Para manejar tildes y Ñ en JSON
+    app.config['SECRET_KEY'] = 'tu_llave_secreta_muy_segura' # Cambiar por variable de entorno
+
+    # 2. Administrar CORS
+    # Permite peticiones desde cualquier origen (puedes restringirlo en producción)
+    CORS(app, resources={r"/*": {"origins": "*"}})
+
+    # 3. Inicialización de la Base de Datos
+    # Esto asegura que las tablas existan antes de que entre la primera petición
+    with app.app_context():
+        try:
+            build_initial_database()
+            print("✔ Base de datos verificada/inicializada.")
+        except Exception as e:
+            print(f"✘ Error inicializando la base de datos: {e}")
+
+    @app.route("/", methods=["GET"])
+    def index():
+        return {
+            "status": "online",
+            "message": "Restaurant API Backend Corriendo",
+            "version": "1.0.0"
+        }
+
+    return app
 
 if __name__ == '__main__':
-    app.run(host="localhost", port=5000, debug=True)
+    app = create_app()
+    # Usar debug=True solo en desarrollo
+    app.run(host="0.0.0.0", port=5000, debug=True)
