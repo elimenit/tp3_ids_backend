@@ -1,0 +1,1 @@
+"""Acceso privado: Rutas que requieren autenticación y autorización."""
