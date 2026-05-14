@@ -1,0 +1,9 @@
+# Virtual Enviroment
+.venv
+venv
+# Secrets Keys
+**/.env 
+# trash of the interpreter
+**/__pycache__
+**/**/*.pyc 
+# Verificar con git status que es lo que suben

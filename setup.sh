@@ -21,15 +21,17 @@ configuracion_punto_env() {
 correr_aplicacion_backend() {
     if [[ ! -d ".venv" ]]; then
         python3 -m venv .venv
-        source .venv/bin/activate
-        pip install -r requirements.txt
     fi
+    source .venv/bin/activate
+    pip install -r requirements.txt --resume-retries=30
+    salir_error
     if [[ -f "app.py" ]]; then
         python3 -m app
     else
         echo "[-] No existe app.py"
         exit 1
     fi
+    
 }
 
 salir_error() {
