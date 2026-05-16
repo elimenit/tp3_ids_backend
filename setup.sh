@@ -45,7 +45,7 @@ salir_error() {
 main() {
 
     echo "Actualizando e instalando servicios necesarios ..."
-    #inicializar_tecnologias
+    inicializar_tecnologias
     salir_error
 
     NAME_DB="root"
