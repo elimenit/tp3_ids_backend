@@ -22,6 +22,29 @@ def create_app():
         except Exception as e:
             print(f"✘ Error inicializando la base de datos: {e}")
 
+    # 4. Registro de Rutas
+    from routers.public.deliverys import public_bp_delivery
+    from routers.public.payments import public_bp_payment
+    from routers.public.errors import public_bp_error
+    from routers.public.login import public_bp_login
+    from routers.public.menus import public_bp_menu
+    from routers.public.orders import public_bp_orders
+    from routers.public.reservations import public_bp_reservations
+    from routers.public.users import public_bp_users
+    from routers.admin.users import adm_bp_users
+    from routers.admin.dashboards import adm_bp_dashboards
+    
+    app.register_blueprint(public_bp_delivery)
+    app.register_blueprint(public_bp_payment)
+    app.register_blueprint(public_bp_error)
+    app.register_blueprint(public_bp_login)
+    app.register_blueprint(public_bp_menu)
+    app.register_blueprint(public_bp_orders)
+    app.register_blueprint(public_bp_reservations)
+    app.register_blueprint(public_bp_users)
+    app.register_blueprint(adm_bp_users)
+    app.register_blueprint(adm_bp_dashboards)
+
     @app.route("/", methods=["GET"])
     def index():
         return {

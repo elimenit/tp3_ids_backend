@@ -26,6 +26,16 @@ CREATE TABLE IF NOT EXISTS status_orders (
     name VARCHAR(100) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS status_reservations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS status_deliverys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS customers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(100),
@@ -90,7 +100,34 @@ CREATE TABLE IF NOT EXISTS reviews (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS reservations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    table_id INT,
+    reservation_datetime DATETIME,
+    status_table_id INT, 
+    status_reservation_id INT 
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (table_id) REFERENCES restaurant_tables(id),
+    FOREIGN KEY (status_table_id) REFERENCES status_tables(id),
+    FOREIGN KEY (status_reservation_id) REFERENCES status_reservations(id)
+);
+
+CREATE TABLE IF NOT EXISTS deliverys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    delivery_address VARCHAR(255),
+    delivery_datetime DATETIME,
+    status_orders_id INT, 
+    status_deliverys_id INT, 
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (status_orders_id) REFERENCES status_orders(id),
+    FOREIGN KEY (status_deliverys_id) REFERENCES status_deliverys(id)
+);
+
 INSERT IGNORE INTO status_orders (name) VALUES ('Pending'), ('In Preparation'), ('Delivered'), ('Paid');
+INSERT IGNORE INTO status_reservations (name) VALUES ('Pending'), ('Confirmed'), ('Cancelled'), ('Arrived');
+INSERT IGNORE INTO status_deliverys (name) VALUES ('Pending'), ('In Transit'), ('Delivered'), ('Cancelled');
 INSERT IGNORE INTO status_tables (name) VALUES ('Available'), ('Occupied'), ('Reserved');
 INSERT IGNORE INTO menu_categories (name) VALUES ('Drinks'), ('Burgers'), ('Pasta');
 
