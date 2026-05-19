@@ -24,13 +24,14 @@ def build_initial_database() -> None:
         # 1. Conexión inicial (sin base de datos específica todavía)
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-
+        query_except = ""
         print("--- Iniciando construcción de la base de datos ---")
 
         with open(file="database/init.sql", mode='r', encoding='utf-8') as f:
             sql_script = f.read()
         
         for query in sql_script.split(';'):
+            query_except = query
             cursor.execute(query)
             conn.commit()
         
@@ -39,7 +40,7 @@ def build_initial_database() -> None:
     except FileNotFoundError:
         print("Error: No se encontró el archivo 'database/init.sql'")
     except Error as e:
-        print(f"Error de MySQL: {e}")
+        print(f"Error de MySQL: {e} \ncon la query: {query_except}")
     finally:
         if conn and conn.is_connected():
             cursor.close()
@@ -54,6 +55,5 @@ def get_connection():
             **DB_CONFIG,
             database=NAME_DB
         )
-    except Error as e:
-        print(f"Error al conectar a {NAME_DB}: {e}")
-        return None
+    except Exception as e:
+        print(f"error: {e}")

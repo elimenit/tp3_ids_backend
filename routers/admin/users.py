@@ -2,10 +2,11 @@
 """
 
 from flask import Blueprint, request
-from database.db import get_connection
 from utils.error import error_response
+from database.admin.users import db_list_users
+from services.admin.users import validar_limit_offset
 
-adm_bp_users = Blueprint("admin_users", __name__, url_prefix="/admin/users")
+adm_bp_users = Blueprint("admin_users", __name__)
 
 @adm_bp_users.route(rule="/", methods=["GET"])
 def show()-> list:
@@ -14,17 +15,18 @@ def show()-> list:
     # Query Params del endpoint
     limit: int = request.args.get('limit', 10, type=int)
     offset: int = request.args.get('offset', 0, type=int)
-    
-    query: str = "SELECT * FROM users WHERE LIMIT %s AND OFFSET %s"
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute(query, (limit, offset))
-        users = cursor.fetchall() # devuelve una lista asi sea un elemento
-        cursor.close()
-        conn.close()
-    except Exception as e:
+    if not validar_limit_offset(limit, offset):
+        return error_response(
+            "Limit u Offset Invalidos",
+            "Limit u offset fuera de rango",
+            400
+        )
+        
+    try:    
+        users = db_list_users(limit, offset)
+    except:         
         return error_response(message=f"Exception: {e}", description="Base de Datos no Inicializada", status_code=500)
+    
     return users
 
 @adm_bp_users.route(rule="/<int:id>", methods=["GET"])

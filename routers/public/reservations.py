@@ -2,7 +2,7 @@
 """
 from flask import Blueprint, request
 
-public_bp_reservations = Blueprint("public_reservations", __name__, url_prefix="/public/reservations")
+public_bp_reservations = Blueprint("public_reservations", __name__)
 
 @public_bp_reservations.route("/<int:id>", methods=["GET"])
 def get_reservation(id: int):

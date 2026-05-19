@@ -13,7 +13,7 @@ inicializar_tecnologias() {
 
 configuracion_punto_env() {
 
-    echo -ne "MYSQL_USER='root'\nMYSQL_NAME_DB='techlibre'\nMYSQL_PASSWORD='password'\nMYSQL_PORT=3306\nMYSQL_HOST='127.0.0.1'\nFLASK_HOST='127.0.0.1'\nFLASK_PORT=5000" > .env
+    echo -ne "MYSQL_USER='root'\nMYSQL_NAME_DB='restaurant'\nMYSQL_PASSWORD='password'\nMYSQL_PORT=3306\nMYSQL_HOST='127.0.0.1'\nFLASK_HOST='127.0.0.1'\nFLASK_PORT=5000" > .env
 
     echo "[+] Archivo .env creado"
 }

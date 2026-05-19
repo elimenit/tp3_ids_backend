@@ -8,5 +8,8 @@ Traductor:
 -- menu_categories=categoria del menu, orders=pedidos, order_items=,detalles del pedido
 -- employees=empleados, users=usuarios del sistema, 
 -- El tipo de menu = 'drinks' 'desserts' 'pasta' 'burger' ...
-
+* stock -> INDICA LA CANTIDAD D MENUS
+"""
+"""
+Un Usuario paga por la mesa en la que va ha estar y por el menu.
 """

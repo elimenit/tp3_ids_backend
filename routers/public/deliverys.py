@@ -2,7 +2,7 @@
 """
 from flask import Blueprint
 
-public_bp_delivery = Blueprint("public_delivery", __name__, url_prefix="/public/delivery")
+public_bp_delivery = Blueprint("public_delivery", __name__)
 
 @public_bp_delivery.route("/create-account", methods=['GET'])
 def show_delivery():
