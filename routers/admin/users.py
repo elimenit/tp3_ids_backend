@@ -5,9 +5,9 @@ from flask import Blueprint, request
 from database.db import get_connection
 from utils.error import error_response
 
-bp_users = Blueprint("users", __name__, url_prefix="/users")
+adm_bp_users = Blueprint("admin_users", __name__, url_prefix="/admin/users")
 
-@bp_users.route(rule="/", methods=["GET"])
+@adm_bp_users.route(rule="/", methods=["GET"])
 def show()-> list:
     """Obtiene una lista de Usuarios.\n
     """
@@ -27,7 +27,7 @@ def show()-> list:
         return error_response(message=f"Exception: {e}", description="Base de Datos no Inicializada", status_code=500)
     return users
 
-@bp_users.route(rule="/<int:id>", methods=["GET"])
+@adm_bp_users.route(rule="/<int:id>", methods=["GET"])
 def get_user(id: int):
     """Obtiene un Usuario.\n
     """
@@ -47,31 +47,19 @@ def get_user(id: int):
         return error_response(message=f"Exception: {e}", description="Base de Datos no Inicializada", status_code=500)
     return user
 
-@bp_users.route(rule="/<int:id>", methods=["POST"])
-def create(id: int):
-    """Crear Usuario.\n
-    """
-    body: dict = request.get_json()
-    if not body:
-        return error_response(message="Campos vacios", description="Complete los campos", status_code=400)
-    name: str = body.get('name')
-    password: str = body.get('password')
-    pass
-
-
-@bp_users.route(rule="/<int:id>", methods=["PUT"])
+@adm_bp_users.route(rule="/<int:id>", methods=["PUT"])
 def update(id: int):
     """Actualizar Usuario.\n
     """
     pass
 
-@bp_users.route(rule="/<int:id>", methods=["PATCH"])
+@adm_bp_users.route(rule="/<int:id>", methods=["PATCH"])
 def partial_update(id: int):
     """Actualizacion Parcial.\n
     """
     pass
 
-@bp_users.route(rule="/<int:id>", methods=["DELETE"])
+@adm_bp_users.route(rule="/<int:id>", methods=["DELETE"])
 def delete(id: int):
     """ Eliminar un Usuario.\n
     """

@@ -1,0 +1,1 @@
+"""Acceso al público: Rutas que no requieren autenticación."""
