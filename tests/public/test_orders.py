@@ -1,6 +1,6 @@
 import requests
 HEADERS = {
-    'User-Agent': 'hhh',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0',
     'Content-Type': "application/json"
 }
 URL = 'http://localhost:5000/public/orders'

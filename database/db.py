@@ -19,12 +19,13 @@ def build_initial_database() -> None:
     Lee el archivo init.sql y ejecuta todas las sentencias 
     de forma segura.
     """
+    query_except = ""
     conn = None
     try:
         # 1. Conexión inicial (sin base de datos específica todavía)
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        query_except = ""
+        
         print("--- Iniciando construcción de la base de datos ---")
 
         with open(file="database/init.sql", mode='r', encoding='utf-8') as f:

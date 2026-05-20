@@ -34,6 +34,7 @@ def get_order(user_id: int, order_id: int):
         order = db_get_order(user_id, order_id)
     except Exception as e:
         print(e)
+       
         return error_response(
             "Orden no encontrada",
             f"error: {e}",
@@ -41,9 +42,18 @@ def get_order(user_id: int, order_id: int):
         )
     return jsonify(order), 200
 
-@public_bp_orders.route("/", methods=['POST'])
-def create():
-    pass
+@public_bp_orders.route("/<int:user_id>", methods=['POST'])
+def create(user_id: int):
+    body = request.get_json()
+    if not body:
+        return error_response(
+            "Body Vacio",
+            "Body Empty",
+            400
+        )
+    
+    
+    
 
 @public_bp_orders.route("/<int:id>", methods=['PUT'])
 def update(id: int):
