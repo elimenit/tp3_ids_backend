@@ -2,7 +2,7 @@
 """
 from flask import Blueprint
 
-public_bp_payment = Blueprint("public_payments", __name__, url_prefix="/public/payments")
+public_bp_payment = Blueprint("public_payments", __name__)
 
 @public_bp_payment.route("/<int:id>", methods=['GET'])
 def get_payment(id: int):
@@ -18,6 +18,6 @@ def create():
 def update():
     pass
 
-@public_bp_payment.route("/<int: id>", methods=['DELETE'])
+@public_bp_payment.route("/<int:id>", methods=['DELETE'])
 def remove(id: int):
     pass

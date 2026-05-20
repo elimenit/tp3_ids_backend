@@ -1,10 +1,10 @@
 """Menus.\n
-Platos accesibles al publico.\n
+Informacion de los menus disponibles.\n
 """
 
 from flask import Blueprint
 
-public_bp_menu = Blueprint("public_menus", __name__, url_prefix="/public/menus")
+public_bp_menu = Blueprint("public_menus", __name__)
 
 @public_bp_menu.route("/", methods=['GET'])
 def show()-> list:

@@ -6,4 +6,6 @@ venv
 # trash of the interpreter
 **/__pycache__
 **/**/*.pyc 
+# Files Hidden
+**/**/.*
 # Verificar con git status que es lo que suben
