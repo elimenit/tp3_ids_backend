@@ -50,8 +50,7 @@ CREATE TABLE deliveries (
     id INT AUTO_INCREMENT PRIMARY KEY,
     delivery_address VARCHAR(255),
     delivery_datetime DATETIME,
-    status ENUM ('Pending', 'In Transit', 'Delivered', 'Cancelled'), 
-    FOREIGN KEY (order_id) REFERENCES orders(id)
+    status ENUM ('Pending', 'In Transit', 'Delivered', 'Cancelled')
 );
 
 CREATE TABLE deliveries_menus (
@@ -72,6 +71,3 @@ VALUES (1, 4, 'available', 0), (2, 4, 'available', 0), (3, 6, 'available', 10), 
 
 INSERT INTO menus (category, name, description, price, available)
 VALUES ('drinks', 'jugo', 'pera', 15, 1), ('burgers', 'sandwich', 'ss', 15, 1), ('pasta', 'canelones', 'pera', 15, 1);
-
-INSERT INTO tables_menus (table_id, menu_id, quantity)
-VALUES (1, 1, 2), (1, 2, 1), (1, 3, 1); 

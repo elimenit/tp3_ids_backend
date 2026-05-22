@@ -8,9 +8,7 @@ from database.db import build_initial_database
 # Blueprints
 from routers.login import public_bp_login
 from routers.public.deliverys import public_bp_delivery
-from routers.public.payments import public_bp_payment
 from routers.public.menus import public_bp_menu
-from routers.public.orders import public_bp_orders
 from routers.public.reservations import public_bp_reservations
 from routers.public.users import public_bp_users
 from routers.admin.users import adm_bp_users
@@ -25,10 +23,8 @@ def create_app(app : Flask):
     CORS(app, resources={r"/*": {"origins": "*"}})
     
     app.register_blueprint(public_bp_delivery, url_prefix="/public/delivery")
-    app.register_blueprint(public_bp_payment, url_prefix="/public/payments")
     app.register_blueprint(public_bp_login, url_prefix="/public/login")
     app.register_blueprint(public_bp_menu, url_prefix="/public/menu")
-    app.register_blueprint(public_bp_orders, url_prefix="/public/orders")
     app.register_blueprint(public_bp_reservations, url_prefix="/public/reservations")
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
