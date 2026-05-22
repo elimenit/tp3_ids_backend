@@ -28,37 +28,6 @@ CREATE TABLE restaurant_tables (
     price INT DEFAULT 0
 );
 
-CREATE TABLE orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    status ENUM ('pending', 'preparation', 'delivered', 'paid'),
-    total DECIMAL(10, 2),
-    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
-CREATE TABLE tables_menus (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT,
-    table_id INT,
-    menu_id INT,
-    quantity INT DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (table_id) REFERENCES restaurant_tables(id) ON DELETE CASCADE,
-    FOREIGN KEY (menu_id) REFERENCES menus(id) ON DELETE CASCADE
-);
-
-CREATE TABLE payments (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT NOT NULL, 
-    amount DECIMAL(10,2) NOT NULL,
-    payment_method VARCHAR(100) NOT NULL, 
-    paid_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES orders(id)
-);
-
 CREATE TABLE reviews (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -77,14 +46,23 @@ CREATE TABLE reservations (
     FOREIGN KEY (table_id) REFERENCES restaurant_tables(id)
 );
 
-CREATE TABLE deliverys (
+CREATE TABLE deliveries (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT,
     delivery_address VARCHAR(255),
     delivery_datetime DATETIME,
     status ENUM ('Pending', 'In Transit', 'Delivered', 'Cancelled'), 
     FOREIGN KEY (order_id) REFERENCES orders(id)
 );
+
+CREATE TABLE deliveries_menus (
+    delivery_id INT,
+    menu_id INT,
+    quantity INT DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    qr_code INT DEFAULT 1,
+    FOREIGN KEY (delivery_id) REFERENCES deliveries(id) ON DELETE CASCADE,
+    FOREIGN KEY (menu_id) REFERENCES menus(id) ON DELETE CASCADE
+);  
 
 INSERT INTO users (name, email, password, category)
 VALUES ('admin', 'admin@restaurant.com', 'password', 'admin'), ('test', 'test@gmail.com', 'pass', 'normal');
@@ -97,6 +75,3 @@ VALUES ('drinks', 'jugo', 'pera', 15, 1), ('burgers', 'sandwich', 'ss', 15, 1), 
 
 INSERT INTO tables_menus (table_id, menu_id, quantity)
 VALUES (1, 1, 2), (1, 2, 1), (1, 3, 1); 
-
-INSERT INTO orders (user_id, status, total)
-VALUES (1, 'pending', 100), (1, 'pending', 200);
