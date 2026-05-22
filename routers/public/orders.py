@@ -33,7 +33,6 @@ def get_order(user_id: int, order_id: int):
     try:
         order = db_get_order(user_id, order_id)
     except Exception as e:
-        print(e)
        
         return error_response(
             "Orden no encontrada",
@@ -52,13 +51,42 @@ def create(user_id: int):
             400
         )
     
+    tables_menus = body.get('tables_menus', None)
+    try:
+        orders_id = db_create_order(user_id, tables_menus)
+    except Exception as e:
+        return error_response(
+            "hubo un error",
+            f"Error: {e}",
+            400
+        )
+    return jsonify({"id": orders_id}), 201
     
     
 
-@public_bp_orders.route("/<int:id>", methods=['PUT'])
-def update(id: int):
+@public_bp_orders.route("/<int:user_id>/<int:order_id>", methods=['PUT'])
+def update(user_id: int, order_id: int):
+    body = request.get_json()
+    if not body:
+        return error_response(
+            "Body Empty",
+            "Body vacio",
+            400
+        )
+
     pass
 
-@public_bp_orders.route("/<int:id>", methods=['DELETE'])
-def remove(id: int):
-    pass
+
+@public_bp_orders.route("/<int:user_id>/<int:order_id>", methods=['DELETE'])
+def remove(user_id: int, order_id: int):
+    try:
+        db_delete_order(user_id, order_id)
+        return jsonify({"delete": "true"}), 200
+    except Exception as e:
+        print(e)
+        return error_response(
+            "Order id Not found",
+            f"error: {e}",
+            404
+        )
+    
