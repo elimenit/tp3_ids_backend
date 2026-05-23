@@ -5,6 +5,7 @@ HEADERS = {
     'User-Agent': 'hhh',
     'Content-Type': "application/json"
 }
+
 def test_create_user():
     user = {
         "name": "Jhon Doe",
@@ -12,7 +13,7 @@ def test_create_user():
         "password": "Password1234"
     }
     response = requests.post(url=f"{URL}", json=user, headers=HEADERS)
-    print(response.content)
+    
     assert response.status_code == 201
     id_user = response.json()["id"]
 
