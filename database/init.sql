@@ -7,7 +7,7 @@ CREATE TABLE users (
     name VARCHAR(100),
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(200) NOT NULL,
-    category ENUM ('normal', 'client', 'employee', 'admin', 'root', 'system'), 
+    category ENUM ('normal', 'client', 'employee', 'admin', 'root', 'system') DEFAULT 'normal', 
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP 
 );
 
@@ -48,9 +48,11 @@ CREATE TABLE reservations (
 
 CREATE TABLE deliveries (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    delivery_address VARCHAR(255),
-    delivery_datetime DATETIME,
-    status ENUM ('Pending', 'In Transit', 'Delivered', 'Cancelled')
+    user_id INT,
+    address VARCHAR(255) DEFAULT 'addres_example',
+    delivery_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM ('pending', 'transit', 'delivered', 'cancelled'),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE deliveries_menus (

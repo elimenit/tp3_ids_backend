@@ -4,7 +4,7 @@
 from flask import Blueprint, request, jsonify
 
 from database.public.users import (
-    db_get_user, db_create_user, db_delete_user
+    db_get_user, db_create_user,db_update_user, db_delete_user
 )
 from utils.error import error_response
 
@@ -70,7 +70,27 @@ def create():
 def update(id: int):
     """Actualizar Usuario.\n
     """
-    pass
+    body = request.get_json()
+    if not body:
+        return error_response(
+            "Cuerpo vacio",
+            "Vacio",
+            400
+        )
+    name: str = body.get('name', None)
+    password: str = body.get('password', None)
+
+    try:
+        db_update_user(id, name, password)
+    except Exception as e:
+        print(e)
+        return error_response(
+            "No se Encontro al usuario",
+            f"Error:{e}",
+            404
+        )
+    return jsonify(), 204
+ 
 
 @public_bp_users.route(rule="/<int:id>", methods=["PATCH"])
 def partial_update(id: int):
