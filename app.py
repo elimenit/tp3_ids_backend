@@ -1,43 +1,31 @@
+"""Aplicacion Principal.\n
+Por Favor el el app.run(debug=False) 
+ejecutenlo asi porque sino se ejecuta dos veces este archivo-> se ejecutan 2 veces las mismas querys en la Base de datos.
+"""
 from flask import Flask, jsonify
 from flask_cors import CORS
 from database.db import build_initial_database
+# Blueprints
+from routers.login import public_bp_login
+from routers.public.deliveries import public_bp_delivery
+from routers.public.menus import public_bp_menu
+from routers.public.reservations import public_bp_reservations
+from routers.public.users import public_bp_users
+from routers.admin.users import adm_bp_users
+from routers.admin.dashboards import adm_bp_dashboards
 
-def create_app():
-    app = Flask(__name__)
-
+def create_app()-> Flask:
     # 1. Configuraciones Globales
+    app = Flask(__name__)
     app.config['JSON_AS_ASCII'] = False  # Para manejar tildes y Ñ en JSON
     app.config['SECRET_KEY'] = 'tu_llave_secreta_muy_segura' # Cambiar por variable de entorno
-
     # 2. Administrar CORS
     # Permite peticiones desde cualquier origen (puedes restringirlo en producción)
     CORS(app, resources={r"/*": {"origins": "*"}})
-
-    # 3. Inicialización de la Base de Datos
-    # Esto asegura que las tablas existan antes de que entre la primera petición
-    with app.app_context():
-        try:
-            build_initial_database()
-            print("✔ Base de datos verificada/inicializada.")
-        except Exception as e:
-            print(f"✘ Error inicializando la base de datos: {e}")
-
-    # 4. Registro de Rutas
-    from routers.login import public_bp_login
-    from routers.public.deliverys import public_bp_delivery
-    from routers.public.payments import public_bp_payment
-    from routers.public.menus import public_bp_menu
-    from routers.public.orders import public_bp_orders
-    from routers.public.reservations import public_bp_reservations
-    from routers.public.users import public_bp_users
-    from routers.admin.users import adm_bp_users
-    from routers.admin.dashboards import adm_bp_dashboards
     
-    app.register_blueprint(public_bp_delivery, url_prefix="/public/delivery")
-    app.register_blueprint(public_bp_payment, url_prefix="/public/payments")
+    app.register_blueprint(public_bp_delivery, url_prefix="/public/deliveries")
     app.register_blueprint(public_bp_login, url_prefix="/public/login")
     app.register_blueprint(public_bp_menu, url_prefix="/public/menu")
-    app.register_blueprint(public_bp_orders, url_prefix="/public/orders")
     app.register_blueprint(public_bp_reservations, url_prefix="/public/reservations")
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
@@ -58,7 +46,7 @@ def create_app():
                 "message": "Server Failed",
                 "error": f"{error}"
             }
-        )
+        ), 500
 
     @app.route("/", methods=["GET"])
     def index():
@@ -67,10 +55,13 @@ def create_app():
             "message": "Restaurant API Backend Corriendo",
             "version": "1.0.0"
         }
-
     return app
 
-if __name__ == '__main__':
+def main():
+    app = Flask(__name__)
     app = create_app()
-    # Usar debug=True solo en desarrollo
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="localhost", port=5000, debug=False) # debug=True -> Llama dos veces las querys del archivo init.sql.
+
+if __name__ == '__main__':
+    build_initial_database()
+    main()   

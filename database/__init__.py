@@ -15,4 +15,6 @@ Un Usuario paga por la mesa en la que va ha estar y por el menu.
 -> Order -> Tables -> Menus-> Fechas -> Payments -> Email(QR)
 -> Reserva -> Tables -> Menus -> Fechas -> Payments-> Email(QR)
 -> Delivery -> Menus -> Email(QR) -> Payments
+** Antes de insertar una orden debemos insertar los datos a tablas_menus;
+** Una orden una mesa y una mesa varios menus
 """
