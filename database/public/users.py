@@ -1,5 +1,20 @@
 from database.db import get_connection
 
+def db_login(email: str, password: str):
+    """Login de usuario.\n
+    """
+    conn = get_connection()
+    if conn:
+        with conn.cursor(dictionary=True) as cursor:
+            query = "SELECT id FROM users WHERE email = %s AND password = %s"
+            cursor.execute(query, (email, password))
+            user = cursor.fetchone()
+            if not user:
+                raise Exception("Credenciales inválidas")
+    else:
+        raise Exception("Error de conexión a la base de datos")
+    return user['id']
+
 def db_get_user(id: int):
     """Obtener usuario.\n
     """

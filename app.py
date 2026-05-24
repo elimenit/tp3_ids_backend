@@ -36,7 +36,7 @@ def create_app()-> Flask:
     def not_found(error):
         return jsonify({
             "message": "Page not found",
-            "error": f"{error}"
+            "description": f"{error}"
         }), 404
 
     @app.errorhandler(Exception)
@@ -44,7 +44,7 @@ def create_app()-> Flask:
         return jsonify(
             {
                 "message": "Server Failed",
-                "error": f"{error}"
+                "description": str(error)
             }
         ), 500
 
