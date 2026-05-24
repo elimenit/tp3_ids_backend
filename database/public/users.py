@@ -44,6 +44,19 @@ def db_create_user(name: str, email: str, password: str)-> None:
     conn.close()
     return id_user
 
+def db_update_user(id: int, name: str, password: str)-> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+    query = """
+    UPDATE users
+    SET name = %s, password = %s
+    WHERE id = %s;
+    """
+    cursor.execute(query, (name, password, id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
 def db_delete_user(id: int)-> bool:
     """
     Elimina un usuario por su id.\n
