@@ -4,7 +4,7 @@
 from flask import Blueprint, request, jsonify
 
 from database.public.users import (
-    db_get_user, db_create_user,db_update_user, db_delete_user
+    db_get_user,db_get_user_email,  db_create_user,db_update_user, db_delete_user
 )
 from utils.error import error_response
 
@@ -14,22 +14,53 @@ from services.public.users import (
 
 public_bp_users = Blueprint("public_users", __name__)
 
-@public_bp_users.route(rule="/<int:id>", methods=["GET"])
-def get_user(id: int):
+@public_bp_users.route(rule="/", methods=["GET"])
+def get_user_email():
     """Obtiene un Usuario.\n
     """
+    email: str = request.args.get('email', None)
+    password: str = request.args.get('password', None)
     try:
-        user = db_get_user(id)
+        user = db_get_user_email(email, password)
+        if user is None:
+            return error_response(
+                "User Not found",
+                "Usuario no encontrado",
+                404
+            )
     except Exception as e:
-        return error_response(message="Usuario No encontrado", description=f"error: {e}", status_code=404)
+        return error_response(message="conexion refused", description=f"error: {e}", status_code=400)
   
     return jsonify(
         {
             "id": user[0],
             "name": user[1],
-            "email": user[2],
-            "category": user[3],
-            "date": user[4],
+            "category": user[2],
+            "date": user[3],
+        }
+    ), 200
+
+@public_bp_users.route(rule="/id/<int:id>", methods=["GET"])
+def get_user(id: int):
+    """Obtiene un Usuario.\n
+    """
+    try:
+        user = db_get_user(id)
+        if user is None:
+            return error_response(
+                "User Not Found",
+                "user no encontrado",
+                404
+            )
+    except Exception as e:
+        return error_response(message="conexion refused", description=f"error: {e}", status_code=400)
+  
+    return jsonify(
+        {
+            "id": user[0],
+            "name": user[1],
+            "category": user[2],
+            "date": user[3],
         }
     ), 200
 
@@ -58,15 +89,21 @@ def create():
     password = password.strip()
     try:
         id_user = db_create_user(name, email, password)
+        if id_user is None:
+            return error_response(
+                "El usuario Ya existe!",
+                "Usuario ya esta registrado",
+                400
+            )
     except Exception as e:
         return error_response(
-            "Usuario ya existe",
+            "Conexion refused",
             f"El error: {e}",
             400
         )
     return jsonify({"id": id_user}), 201
 
-@public_bp_users.route(rule="/<int:id>", methods=["PUT"])
+@public_bp_users.route(rule="/id/<int:id>", methods=["PUT"])
 def update(id: int):
     """Actualizar Usuario.\n
     """
@@ -81,15 +118,21 @@ def update(id: int):
     password: str = body.get('password', None)
 
     try:
-        db_update_user(id, name, password)
+        id = db_update_user(id, name, password)
+        if id is None:
+            return error_response(
+                "User Not found",
+                "Usuario no encontrado",
+                404
+            )
     except Exception as e:
         print(e)
         return error_response(
-            "No se Encontro al usuario",
+            "conexion refused",
             f"Error:{e}",
-            404
+            400
         )
-    return jsonify(), 204
+    return jsonify({"id": id}), 200
  
 
 @public_bp_users.route(rule="/<int:id>", methods=["PATCH"])
@@ -110,11 +153,17 @@ def delete(id: int):
         )
     try:
         email = db_delete_user(id)
+        if email is None:
+            return error_response(
+                "User Not found",
+                "User Not found",
+                404
+            )
     except Exception as e:
         return error_response(
-            "El usuario no fue encontrado",
+            "conexion refused",
            f"error: {e}",
-           404
+           400
         )
         
     return jsonify({"id": id, "email": email}), 200

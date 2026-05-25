@@ -14,13 +14,19 @@ def show(user_id: int):
     """Usuario Obtiene informacion de sus deliveries.\n
     """
     try:
-        deliveries = db_get_deliveries(user_id)    
+        deliveries = db_get_deliveries(user_id)  
+        if deliveries is None:
+            return error_response(
+                "User not found",
+                "No se encontro al usuario",
+                404)
+
     except Exception as e:
         print(e)
         return error_response(
-            "No se encontro el delivery",
+            "conexion refused",
             f"Error: {e}",
-            404)
+            400)
 
     return jsonify(deliveries), 200
     
@@ -28,13 +34,19 @@ def show(user_id: int):
 def get_delivery(user_id: int, delivery_id: int)-> dict:
     try:
         
-        delivery = db_get_delivery(user_id, delivery_id)    
+        delivery = db_get_delivery(user_id, delivery_id)
+        if delivery is None:
+            return error_response(
+                "User o delivery not found",
+                "usuario o delivery no encontrado",
+                404)    
+    
     except Exception as e:
         print(f"Error: {e}")
         return error_response(
-            "No se encontro el delivery",
+            "conexion refused",
             f"Error: {e}",
-            404)
+            400)
 
     return jsonify(delivery), 200
 

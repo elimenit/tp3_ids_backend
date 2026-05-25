@@ -1,6 +1,6 @@
 from database.db import get_connection
 
-def db_get_user(id: int):
+def db_get_user(id: int)-> dict | None:
     """Obtener usuario.\n
     """
     conn = get_connection()
@@ -10,17 +10,25 @@ def db_get_user(id: int):
     cursor.execute(query, (id, ))
     user = cursor.fetchone()
 
-    if user is None:
-        cursor.close()
-        conn.close()
-        raise Exception("El usuario no existe")
-    
+    cursor.close()
+    conn.close()
+    return user
+
+def db_get_user_email(email: str, password: str)-> dict | None:
+    """Obtener usuario.\n
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = "SELECT id, name, category, created_at FROM users WHERE email = %s AND password = %s;"
+    cursor.execute(query, (email, password))
+    user = cursor.fetchone()
     cursor.close()
     conn.close()
     
     return user
 
-def db_create_user(name: str, email: str, password: str)-> None:
+def db_create_user(name: str, email: str, password: str)-> None | int:
     """ Inserta un usuario.\n
     Devuelve el id del usuario creado 
     """
@@ -29,24 +37,27 @@ def db_create_user(name: str, email: str, password: str)-> None:
 
     cursor.execute("SELECT email from users WHERE email = %s", (email, ))
     user = cursor.fetchone()
-    if user is not None:
+    if user:
         cursor.close()
         conn.close()
-        raise Exception("EL usuario ya existe")
-    
+        return None
+
     query = "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)"
     cursor.execute(query, (name, email, password))
     conn.commit()
 
     id_user = cursor.lastrowid
-    
     cursor.close()
     conn.close()
     return id_user
 
-def db_update_user(id: int, name: str, password: str)-> None:
+def db_update_user(id: int, name: str, password: str)-> int | None:
     conn = get_connection()
     cursor = conn.cursor()
+    cursor.execute("SELECT email FROM users WHERE id =%s;", (id, ))
+    email = cursor.fetchone()
+    if email is None:
+        return None
     query = """
     UPDATE users
     SET name = %s, password = %s
@@ -56,8 +67,9 @@ def db_update_user(id: int, name: str, password: str)-> None:
     conn.commit()
     cursor.close()
     conn.close()
+    return id
 
-def db_delete_user(id: int)-> bool:
+def db_delete_user(id: int)-> str | None:
     """
     Elimina un usuario por su id.\n
     """
@@ -66,9 +78,11 @@ def db_delete_user(id: int)-> bool:
     
     cursor.execute("SELECT email FROM users WHERE id = %s", (id, ))
     email = cursor.fetchone()
-    print(email)
+
     if not email:
-        raise Exception("Usuario no registrado!")
+        cursor.close()
+        conn.close()
+        return None
 
     query = "DELETE FROM users WHERE id = %s"
     cursor.execute(query, (id,))
