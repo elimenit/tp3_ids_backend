@@ -11,6 +11,7 @@ from routers.public.deliveries import public_bp_delivery
 from routers.public.menus import public_bp_menu
 from routers.public.reservations import public_bp_reservations
 from routers.public.users import public_bp_users
+from routers.public.reviews import public_bp_reviews
 from routers.admin.users import adm_bp_users
 from routers.admin.dashboards import adm_bp_dashboards
 
@@ -28,6 +29,7 @@ def create_app()-> Flask:
     app.register_blueprint(public_bp_menu, url_prefix="/public/menu")
     app.register_blueprint(public_bp_reservations, url_prefix="/public/reservations")
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
+    app.register_blueprint(public_bp_reviews, url_prefix="/public/reviews")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
     app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboard")
     
