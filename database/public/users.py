@@ -1,31 +1,31 @@
 from database.db import get_connection
 
-def db_login(email: str, password: str) -> dict:
-    """Login de usuario.\n
+def db_login(email: str) -> dict:
+    """Obtiene usuario por email con su contraseña hasheada.\n
     """
     with get_connection() as conn:
         with conn.cursor(dictionary=True) as cursor:
-            query = "SELECT id FROM users WHERE email = %s AND password = %s"
-            cursor.execute(query, (email, password))
+            query = "SELECT id, password FROM users WHERE email = %s"
+            cursor.execute(query, (email,))
             user = cursor.fetchone()
             if not user:
-                raise Exception("Credenciales inválidas")
+                raise Exception("Usuario no encontrado")
             
     return user # type: ignore
     
-def db_get_user(id: int):
+def db_get_user(id: int) -> dict:
     """Obtener usuario.\n
     """
     with get_connection() as conn:
-        with conn.cursor() as cursor:
-            query = "SELECT id, name, email, category, created_at FROM users WHERE id = %s"
+        with conn.cursor(dictionary=True) as cursor:
+            query = "SELECT id, name, email, category, created_at, status FROM users WHERE id = %s"
             cursor.execute(query, (id, ))
             user = cursor.fetchone()
             
     if user is None:
-        raise Exception("El usuario no existe")
+        raise Exception("No se ha encontrado el usuario")
     
-    return user
+    return user # type: ignore
 
 def db_create_user(name: str, email: str, password: str) -> int:
     """ Inserta un usuario.\n

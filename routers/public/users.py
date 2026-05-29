@@ -4,12 +4,12 @@
 from flask import Blueprint, request, jsonify
 
 from database.public.users import (
-    db_get_user, db_create_user,db_update_user, db_delete_user
+    db_get_user, db_update_user, db_delete_user
 )
 from utils.error import error_response
 
 from services.public.users import (
-    validation_creation, validation_id_user
+    create_user, validation_id_user
 )
 
 public_bp_users = Blueprint("public_users", __name__)
@@ -22,14 +22,18 @@ def get_user(id: int):
         user = db_get_user(id)
     except Exception as e:
         return error_response(message="Usuario No encontrado", description=f"error: {e}", status_code=404)
-  
+    print(user)
+    if user["status"] == "inactive":
+        return error_response(message="Usuario Inactivo", description="El usuario se encuentra inactivo", status_code=403)
+    
     return jsonify(
         {
-            "id": user[0],
-            "name": user[1],
-            "email": user[2],
-            "category": user[3],
-            "date": user[4],
+            "id": user["id"],
+            "name": user["name"],
+            "email": user["email"],
+            "category": user["category"],
+            "date": user["created_at"],
+            "status": user["status"]
         }
     ), 200
 
@@ -43,25 +47,22 @@ def create():
             "Vacio",
             400
         )
-    name: str = body.get('name', None)
-    email: str = body.get('email', None)
-    password: str = body.get('password', None)
+    name: str = body.get('name', "")
+    email: str = body.get('email', "")
+    password: str = body.get('password', "")
 
-    if not validation_creation(name, email, password):
+    try:
+        id_user = create_user(name, email, password)
+    except ValueError as e:
         return error_response(
             "Campos Invalidos",
-            "Uno o mas campos invalidos",
+            str(e),
             400
         )
-    name = name.strip().lower()
-    email = email.strip().lower()
-    password = password.strip()
-    try:
-        id_user = db_create_user(name, email, password)
     except Exception as e:
         return error_response(
-            "Usuario ya existe",
-            f"El error: {e}",
+            "Error durante la creación del usuario",
+            str(e),
             400
         )
     return jsonify({"id": id_user}), 201
