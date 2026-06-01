@@ -2,8 +2,12 @@
 Por Favor el el app.run(debug=False) 
 ejecutenlo asi porque sino se ejecuta dos veces este archivo-> se ejecutan 2 veces las mismas querys en la Base de datos.
 """
+from datetime import timedelta
+
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+
 from database.db import build_initial_database
 # Blueprints
 from routers.login import public_bp_login
@@ -19,9 +23,14 @@ def create_app()-> Flask:
     app = Flask(__name__)
     app.config['JSON_AS_ASCII'] = False  # Para manejar tildes y Ñ en JSON
     app.config['SECRET_KEY'] = 'tu_llave_secreta_muy_segura' # Cambiar por variable de entorno
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15) # Tiempo de expiración del token JWT
+
     # 2. Administrar CORS
     # Permite peticiones desde cualquier origen (puedes restringirlo en producción)
     CORS(app, resources={r"/*": {"origins": "*"}})
+    
+    # 3. Configurar JWT para autenticación
+    jwt = JWTManager(app)
     
     app.register_blueprint(public_bp_delivery, url_prefix="/public/deliveries")
     app.register_blueprint(public_bp_login, url_prefix="/public/login")

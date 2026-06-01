@@ -1,5 +1,9 @@
+from database.public.users import db_create_user, db_get_user
+from utils.error import error_response
+
 import bcrypt
-from database.public.users import db_create_user, db_login
+from flask_jwt_extended import create_access_token, get_jwt_identity
+from flask import jsonify, Response
 
 def validation_creation(name: str, email: str, password: str)-> bool:
     is_validate: bool = False
@@ -18,20 +22,12 @@ def validation_id_user(id: int)-> bool:
             is_validate = True
     return is_validate
 
-def create_user(name: str, email: str, password: str) -> int:
+def create_user(name: str, email: str, password: str) -> str:
     """
-    Crea un usuario en la base de datos con contraseña hasheada.
+    Recibe el nombre, email y contraseña de un nuevo usuario, 
+    valida los datos, hashea la contraseña y crea el usuario en la base de datos.
     
-    Args:
-        name (str): Nombre del usuario
-        email (str): Email del usuario
-        password (str): Contraseña en texto plano
-    
-    Returns:
-        int: ID del usuario creado
-    
-    Raises:
-        Exception: Si la validación falla o hay error en la base de datos
+    Devuelve un token JWT con la información del usuario creado.
     """
     name = name.strip().lower()
     email = email.strip().lower()
@@ -46,29 +42,21 @@ def create_user(name: str, email: str, password: str) -> int:
     hashed_password_str = hashed_password.decode('utf-8')
     
     # Crear usuario en la base de datos
-    user_id = db_create_user(name, email, hashed_password_str)
+    user = db_create_user(name, email, hashed_password_str)
     
-    return user_id
+    return create_access_token(identity=user)
+    
 
-def login_user(email: str, password: str) -> int:
+def login_user(email: str, password: str) -> str:
     """
-    Verifica las credenciales del usuario y retorna su ID.
-    
-    Args:
-        email (str): Email del usuario
-        password (str): Contraseña en texto plano
-    
-    Returns:
-        int: ID del usuario
-    
-    Raises:
-        Exception: Si las credenciales son inválidas o el usuario no existe
+    Recibe el email y contraseña de un usuario, valida las credenciales, 
+    y devuelve un token JWT con la información del usuario.
     """
     email = email.strip().lower()
     password = password.strip()
     
     # Obtener usuario con hash de contraseña
-    user = db_login(email)
+    user = db_get_user(email=email)
     
     # Verificar contraseña con bcrypt
     password_bytes = password.encode('utf-8')
@@ -77,4 +65,36 @@ def login_user(email: str, password: str) -> int:
     if not bcrypt.checkpw(password_bytes, hashed_password_bytes):
         raise ValueError("Credenciales inválidas")
     
-    return user['id']
+    return create_access_token(identity=user)
+
+def obtain_user(user: dict) -> tuple[Response, int]:
+    """
+    Obtiene un Usuario. Utilizado principalmente para actualizar los datos del token de usuario en el frontend.
+    
+    Devuelve una Response con el token con los datos actualizados del usuario, y con el usuario
+    """
+    id: int = user.get("id", 0)
+    if not id:
+        return error_response(
+            "Id Invalido",
+            "Id del usuario fuera de rango",
+            400
+        )
+    try:
+        user = db_get_user(id)
+    except Exception as e:
+        return error_response(
+            message="Error en la búsqueda de usuario", 
+            description=str(e), 
+            status_code=404
+        )
+    print(user)
+    if user["status"] == "inactive":
+        return error_response(
+            message="Usuario inactivo", 
+            description="El usuario se encuentra inactivo", 
+            status_code=403
+        )
+    new_token = create_access_token(identity=user)  
+    return jsonify({"token": new_token, "user": user}), 200
+

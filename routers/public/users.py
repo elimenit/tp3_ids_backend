@@ -2,40 +2,30 @@
 """
 
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
 from database.public.users import (
-    db_get_user, db_update_user, db_delete_user
+    db_update_user, db_delete_user
 )
 from utils.error import error_response
 
 from services.public.users import (
-    create_user, validation_id_user
+    create_user, validation_id_user, obtain_user
 )
 
 public_bp_users = Blueprint("public_users", __name__)
 
-@public_bp_users.route(rule="/<int:id>", methods=["GET"])
-def get_user(id: int):
-    """Obtiene un Usuario.\n
-    """
-    try:
-        user = db_get_user(id)
-    except Exception as e:
-        return error_response(message="Usuario No encontrado", description=f"error: {e}", status_code=404)
-    print(user)
-    if user["status"] == "inactive":
-        return error_response(message="Usuario Inactivo", description="El usuario se encuentra inactivo", status_code=403)
-    
-    return jsonify(
-        {
-            "id": user["id"],
-            "name": user["name"],
-            "email": user["email"],
-            "category": user["category"],
-            "date": user["created_at"],
-            "status": user["status"]
-        }
-    ), 200
+@public_bp_users.route(rule="/", methods=["GET"])
+@jwt_required()
+def get_user():
+    user: dict = get_jwt_identity()
+    if not user:
+        return error_response(
+            "Error durante la obtención de datos",
+            "No se ha encontrado el usuario",
+            400
+        )
+    return obtain_user(user)
 
 @public_bp_users.route("/", methods=["POST"])
 def create():
@@ -52,7 +42,7 @@ def create():
     password: str = body.get('password', "")
 
     try:
-        id_user = create_user(name, email, password)
+        token = create_user(name, email, password)
     except ValueError as e:
         return error_response(
             "Campos Invalidos",
@@ -65,12 +55,27 @@ def create():
             str(e),
             400
         )
-    return jsonify({"id": id_user}), 201
+    return jsonify({"token": token}), 201
 
-@public_bp_users.route(rule="/<int:id>", methods=["PUT"])
-def update(id: int):
+@public_bp_users.route(rule="/", methods=["PUT"])
+@jwt_required()
+def update():
     """Actualizar Usuario.\n
     """
+    user: dict = get_jwt_identity()
+    if not user:
+        return error_response(
+            "Error durante la obtención de datos",
+            "No se ha encontrado el usuario",
+            400
+        )
+    id = user.get("id", 0)
+    if not validation_id_user(id):
+        return error_response(
+            "Error",
+            "Se ha proporcionado un ID inválido",
+            400
+        )
     body = request.get_json()
     if not body:
         return error_response(
@@ -93,8 +98,8 @@ def update(id: int):
     return jsonify(), 204
  
 
-@public_bp_users.route(rule="/<int:id>", methods=["PATCH"])
-def partial_update(id: int):
+@public_bp_users.route(rule="/", methods=["PATCH"])
+def partial_updat():
     """Actualizacion Parcial.\n
     """
     pass
