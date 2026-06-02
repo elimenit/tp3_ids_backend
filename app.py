@@ -4,7 +4,7 @@ ejecutenlo asi porque sino se ejecuta dos veces este archivo-> se ejecutan 2 vec
 """
 from datetime import timedelta
 
-from flask import Flask, jsonify
+from flask import Flask, app, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
@@ -41,18 +41,18 @@ def create_app()-> Flask:
     app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboard")
     
     # Errores
-    @app.errorhandler(404)
+    @app.errorhandler(ValueError)
     def not_found(error):
         return jsonify({
-            "message": "Page not found",
-            "description": f"{error}"
-        }), 404
+            "message": "Error de usuario",
+            "description": str(error)
+        }), 400
 
     @app.errorhandler(Exception)
     def server_failed(error):
         return jsonify(
             {
-                "message": "Server Failed",
+                "message": "Error",
                 "description": str(error)
             }
         ), 500

@@ -1,38 +1,24 @@
-"""Iniciar session o Crear Cuenta.\n
+"""Iniciar session o Cerrar session.
 """
 from flask import Blueprint, jsonify, request
-from utils.error import error_response
+from flask_jwt_extended import jwt_required
 from services.public.users import login_user
 
 public_bp_login = Blueprint("public_login", __name__)
 
+
 @public_bp_login.route("/", methods=['POST'])
 def login():
-    """Usuario inicia session.\n
-    """
     data = request.get_json()
     if not data:
-        return error_response(
-            "Cuerpo vacio",
-            "Vacio",
-            400
-        )
-    email = data.get('email', "")
-    password = data.get('password', "")
-    
-    try:
-        user_id = login_user(email, password)
-    except ValueError as e:
-        return error_response(
-            "Credenciales inválidas",
-            str(e),
-            401
-        )
-    except Exception as e:
-        return error_response(
-            "Error durante el login",
-            str(e),
-            400
-        )
-    
-    return jsonify({"id": user_id}), 200
+        raise ValueError("El cuerpo no puede estar vacío")
+    print(data)
+    token = login_user(data.get('email', ''), data.get('password', ''))
+    return jsonify({"token": token}), 200
+
+
+@public_bp_login.route("/logout", methods=['POST'])
+@jwt_required()
+def logout():
+    print("Logout successful")
+    return "", 204
