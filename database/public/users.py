@@ -11,6 +11,8 @@ def db_get_user(id: int = 0, email: str = "") -> dict:
     if not id and not email:
         raise ValueError("Se requiere id o email para buscar un usuario")
 
+    print(f"Buscando usuario con id: {id} o email: {email}")
+
     with get_connection() as conn:
         with conn.cursor(dictionary=True) as cursor:
             if id > 0:

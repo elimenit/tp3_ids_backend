@@ -12,23 +12,35 @@ def test_create_update_delete_user():
         "email": "jhondoe@gmail.com",
         "password": "Password1234"
     }
-    response = requests.post(url=f"{URL}", json=user, headers=HEADERS)
-    
+    response = requests.post(url=f"{URL}", json=user, headers=HEADERS, timeout=2)
     assert response.status_code == 201
     id_user = response.json()["id"]
+
+    response = requests.get(url=f"{URL}",params={"email": user["email"], "password": user["password"]}, headers=HEADERS, timeout=2)
+    assert response.status_code == 200
+
+    response = requests.get(url=f"{URL}/id/{id_user}", headers=HEADERS, timeout=2)
+    assert response.status_code == 200
+
     update_user = {
         "name": "jhon",
         "password": "nueva_password"
     }
-    response = requests.put(url=f"{URL}/{id_user}", json=update_user, headers=HEADERS)
-    assert response.status_code == 204
+    response = requests.put(url=f"{URL}/id/{id_user}", json=update_user, headers=HEADERS, timeout=2)
+    assert response.status_code == 200
 
-    response = requests.get(url=f"{URL}/{id_user}", headers=HEADERS)
+    response = requests.get(url=f"{URL}",params={"email": user["email"], "password": update_user["password"]})
+    assert response.status_code == 200
+
+    response = requests.get(url=f"{URL}/id/{id_user}", headers=HEADERS, timeout=2)
     assert response.status_code == 200
     
     get_user = response.json()
     assert get_user["name"] == update_user["name"]
 
-    response = requests.delete(url=f"{URL}/{id_user}", headers=HEADERS)
+    response = requests.delete(url=f"{URL}/{id_user}", headers=HEADERS, timeout=2)
     assert response.status_code == 200
+
+    response = requests.get(url=f"{URL}/id/{id_user}", headers=HEADERS, timeout=2)
+    assert response.status_code == 404
 

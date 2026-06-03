@@ -34,7 +34,7 @@ def create_app()-> Flask:
     
     app.register_blueprint(public_bp_delivery, url_prefix="/public/deliveries")
     app.register_blueprint(public_bp_login, url_prefix="/public/login")
-    app.register_blueprint(public_bp_menu, url_prefix="/public/menu")
+    app.register_blueprint(public_bp_menu, url_prefix="/public/menus")
     app.register_blueprint(public_bp_reservations, url_prefix="/public/reservations")
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
@@ -69,7 +69,7 @@ def create_app()-> Flask:
 def main():
     app = Flask(__name__)
     app = create_app()
-    app.run(host="localhost", port=5000, debug=False) # debug=True -> Llama dos veces las querys del archivo init.sql.
+    app.run(host="localhost", port=15000, debug=False) # debug=True -> Llama dos veces las querys del archivo init.sql.
 
 if __name__ == '__main__':
     build_initial_database()
