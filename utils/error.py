@@ -6,5 +6,5 @@ def error_response(message: str, description: str, status_code: int = 400):
     """
 
     return jsonify(
-        {"mensaje": message, "description": description}
+        {"message": message, "description": description}
     ), status_code

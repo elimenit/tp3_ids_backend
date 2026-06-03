@@ -54,9 +54,10 @@ def get_connection():
     Devuelve una conexión a la base de datos específica.
     """
     try:
-        return mysql.connector.connect(
+        conn = mysql.connector.connect(
             **DB_CONFIG,
             database=NAME_DB
         )
     except Exception as e:
-        print(f"error: {e}")
+        raise Exception(f"Error en la conexión a la base de datos: {e}")
+    return conn
