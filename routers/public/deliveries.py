@@ -1,6 +1,7 @@
 """Rutas para la gestión de deliverys.\n
 """
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from database.public.deliveries import (
     db_create_delivery, db_get_deliveries, db_get_delivery, db_cancelled_delivery
 )
@@ -9,40 +10,57 @@ from utils.error import error_response
 
 public_bp_delivery = Blueprint("public_delivery", __name__)
 
-@public_bp_delivery.route("/<int:user_id>", methods=['GET'])
-def show(user_id: int):
+@public_bp_delivery.route("/", methods=['GET'])
+@jwt_required()
+def show():
     """Usuario Obtiene informacion de sus deliveries.\n
     """
+    user_id = int(get_jwt_identity())
     try:
-        deliveries = db_get_deliveries(user_id)    
+        deliveries = db_get_deliveries(user_id)  
+        if deliveries is None:
+            return error_response(
+                "User not found",
+                "No se encontro al usuario",
+                404)
+
     except Exception as e:
         print(e)
         return error_response(
-            "No se encontro el delivery",
+            "conexion refused",
             f"Error: {e}",
-            404)
+            400)
 
     return jsonify(deliveries), 200
     
-@public_bp_delivery.route("/<int:user_id>/<int:delivery_id>", methods=["GET"])
-def get_delivery(user_id: int, delivery_id: int)-> dict:
+@public_bp_delivery.route("/<int:delivery_id>", methods=["GET"])
+@jwt_required()
+def get_delivery(delivery_id: int)-> dict:
+    user_id = int(get_jwt_identity())
     try:
         
-        delivery = db_get_delivery(user_id, delivery_id)    
+        delivery = db_get_delivery(user_id, delivery_id)
+        if delivery is None:
+            return error_response(
+                "User o delivery not found",
+                "usuario o delivery no encontrado",
+                404)    
+    
     except Exception as e:
         print(f"Error: {e}")
         return error_response(
-            "No se encontro el delivery",
+            "conexion refused",
             f"Error: {e}",
-            404)
+            400)
 
     return jsonify(delivery), 200
 
-@public_bp_delivery.route("/<int:user_id>", methods=['POST'])
-def create(user_id: int)-> int:
+@public_bp_delivery.route("/", methods=['POST'])
+@jwt_required()
+def create():
     """Crea el pedido de delivery.\n
     """
-    
+    user_id = int(get_jwt_identity())
     body = request.get_json()
 
     if not body:
@@ -71,8 +89,10 @@ def create(user_id: int)-> int:
             404)
     return jsonify({"id": id_deli if id_deli else 'null'}), 201
 
-@public_bp_delivery.route("/<int:user_id>/<int:delivery_id>", methods=["DELETE"])
-def cancelled(user_id: int, delivery_id: int):
+@public_bp_delivery.route("/<int:delivery_id>", methods=["DELETE"])
+@jwt_required()
+def cancelled(delivery_id: int):
+    user_id = int(get_jwt_identity())
     try:
         db_cancelled_delivery(user_id, delivery_id)
     

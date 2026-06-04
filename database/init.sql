@@ -74,3 +74,9 @@ VALUES (1, 4, 'available', 0), (2, 4, 'available', 0), (3, 6, 'available', 10), 
 
 INSERT INTO menus (category, name, description, price, available)
 VALUES ('drinks', 'jugo', 'pera', 15, 1), ('burgers', 'sandwich', 'ss', 15, 1), ('pasta', 'canelones', 'pera', 15, 1);
+
+INSERT INTO deliveries (user_id, address, status)
+VALUES (2, 'direccion', 'pending'), (2, 'otra_address', 'pending');
+
+INSERT INTO deliveries_menus (delivery_id, menu_id, quantity, qr_code)
+VALUES (1, 1, 2, 1), (1, 2, 1, 1), (2, 3, 10, 1);
