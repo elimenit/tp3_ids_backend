@@ -2,13 +2,10 @@
 
 inicializar_tecnologias() {
     sudo apt update && sudo apt upgrade -y
-
-    sudo apt install -y mysql-server
     sudo apt install -y python3 python3-pip
     sudo apt install -y docker.io docker-compose
 
     echo "Setup completo ..."
-    sleep 2
 }
 
 configuracion_punto_env() {

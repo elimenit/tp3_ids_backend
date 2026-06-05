@@ -2,8 +2,12 @@
 Por Favor el el app.run(debug=False) 
 ejecutenlo asi porque sino se ejecuta dos veces este archivo-> se ejecutan 2 veces las mismas querys en la Base de datos.
 """
-from flask import Flask, jsonify
+from datetime import timedelta
+
+from flask import Flask, app, jsonify
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+
 from database.db import build_initial_database
 # Blueprints
 from routers.login import public_bp_login
@@ -13,15 +17,21 @@ from routers.public.reservations import public_bp_reservations
 from routers.public.users import public_bp_users
 from routers.admin.users import adm_bp_users
 from routers.admin.dashboards import adm_bp_dashboards
+from routers.admin.reservations import adm_bp_reservations
 
 def create_app()-> Flask:
     # 1. Configuraciones Globales
     app = Flask(__name__)
     app.config['JSON_AS_ASCII'] = False  # Para manejar tildes y Ñ en JSON
     app.config['SECRET_KEY'] = 'tu_llave_secreta_muy_segura' # Cambiar por variable de entorno
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15) # Tiempo de expiración del token JWT
+
     # 2. Administrar CORS
     # Permite peticiones desde cualquier origen (puedes restringirlo en producción)
     CORS(app, resources={r"/*": {"origins": "*"}})
+    
+    # 3. Configurar JWT para autenticación
+    jwt = JWTManager(app)
     
     app.register_blueprint(public_bp_delivery, url_prefix="/public/deliveries")
     app.register_blueprint(public_bp_login, url_prefix="/public/login")
@@ -30,21 +40,22 @@ def create_app()-> Flask:
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
     app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboard")
+    app.register_blueprint(adm_bp_reservations, url_prefix="/admin/reservations")
     
     # Errores
-    @app.errorhandler(404)
+    @app.errorhandler(ValueError)
     def not_found(error):
         return jsonify({
-            "message": "Page not found",
-            "error": f"{error}"
-        }), 404
+            "message": "Error de usuario",
+            "description": str(error)
+        }), 400
 
     @app.errorhandler(Exception)
     def server_failed(error):
         return jsonify(
             {
-                "message": "Server Failed",
-                "error": f"{error}"
+                "message": "Error",
+                "description": str(error)
             }
         ), 500
 

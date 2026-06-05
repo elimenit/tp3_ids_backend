@@ -8,6 +8,7 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(200) NOT NULL,
     category ENUM ('normal', 'client', 'employee', 'admin', 'root', 'system') DEFAULT 'normal', 
+    status ENUM ('active', 'inactive') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP 
 );
 
@@ -42,6 +43,7 @@ CREATE TABLE reservations (
     table_id INT,
     reservation_datetime DATETIME,
     status_reservation ENUM ('Pending', 'Confirmed', 'Cancelled', 'Arrived'),
+    qr_token VARCHAR(100) UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (table_id) REFERENCES restaurant_tables(id)
 );
