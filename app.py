@@ -17,6 +17,7 @@ from routers.public.reservations import public_bp_reservations
 from routers.public.users import public_bp_users
 from routers.admin.users import adm_bp_users
 from routers.admin.dashboards import adm_bp_dashboards
+from routers.admin.reservations import adm_bp_reservations
 
 def create_app()-> Flask:
     # 1. Configuraciones Globales
@@ -39,6 +40,7 @@ def create_app()-> Flask:
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
     app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboard")
+    app.register_blueprint(adm_bp_reservations, url_prefix="/admin/reservations")
     
     # Errores
     @app.errorhandler(ValueError)
