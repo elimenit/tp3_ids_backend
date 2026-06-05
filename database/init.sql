@@ -43,6 +43,7 @@ CREATE TABLE reservations (
     table_id INT,
     reservation_datetime DATETIME,
     status_reservation ENUM ('Pending', 'Confirmed', 'Cancelled', 'Arrived'),
+    qr_token VARCHAR(100) UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (table_id) REFERENCES restaurant_tables(id)
 );
