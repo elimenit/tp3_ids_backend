@@ -10,8 +10,9 @@ inicializar_tecnologias() {
 
 configuracion_punto_env() {
 
-    echo -ne "MYSQL_USER='root'\nMYSQL_NAME_DB='restaurant'\nMYSQL_PASSWORD='password'\nMYSQL_PORT=3306\nMYSQL_HOST='127.0.0.1'\nFLASK_HOST='127.0.0.1'\nFLASK_PORT=15000" > .env
-
+    echo -ne "MYSQL_USER='root'\nMYSQL_NAME_DB='restaurant'\nMYSQL_PASSWORD='password'\n" > .env
+    echo -ne "MYSQL_PORT=3306\nMYSQL_HOST='127.0.0.1'\nFLASK_HOST='127.0.0.1'\nFLASK_PORT=15000\n" >> .env 
+    echo -ne "SECRET_KEY='Clave_super_secreta_de_flask_seguridad'\n" >> .env
     echo "[+] Archivo .env creado"
 }
 
