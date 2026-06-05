@@ -45,6 +45,25 @@ def db_get_menus(name: str, category: str, limit: int, offset: int)-> dict | Non
     conn.close()
     return menus
 
+def db_create_menu(category: str, name: str, description: str, price: int, available: int)-> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+    validate_query = """
+    SELECT id FROM menus WHERE name = %s AND category = %s;
+    """
+    cursor.execute(validate_query, (name, category))
+    menu_id = cursor.fetchone()
+    if menu_id:
+        raise Exception("Ya existe el menu")
+    
+    query = """
+    INSERT INTO menus (category, name, description, price, available)
+    VALUES (%s, %s, %s, %s, %s)
+    """
+    cursor.execute(query, (category, name, description, price, available))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def _package_menus(menus_db)->list:
     """Empaquetado de los menus.\n

@@ -3,7 +3,7 @@
 from flask import Blueprint, jsonify, request
 from utils.error import error_response
 from database.public.menus import (
-    db_get_menus, db_get_menu
+    db_get_menus, db_get_menu, db_create_menu
 )
 from services.public.menus import validation_limit_offset
 
@@ -50,3 +50,36 @@ def get_menu(menu_id: int):
             f"Error: {e}",
             400)
     return jsonify(menu), 200
+
+@public_bp_menu.route("/", methods=["POST"])
+def create():
+    body: dict = request.get_json()
+    if not body:
+        return error_response(
+            "Body empty",
+            "body Vacio",
+            400
+        )
+    
+    category = body.get("category", None)
+    name = body.get("name", None)
+    description = body.get("description", None)
+    price = body.get("price", None)
+    available = body.get("available", None)
+
+    if not (category and name and description and price and available):
+        return error_response(
+            "Campos Vacios",
+            "Algun Campo Vacio",
+            400
+        )
+    
+    try:
+        db_create_menu(category, name, description, price, available)
+    except Exception as e:
+        return error_response(
+            "No se agrego el menu",
+            f"Error: {e}",
+            400)
+    
+    return jsonify(), 201
