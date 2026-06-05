@@ -34,6 +34,7 @@ CREATE TABLE reviews (
     user_id INT,
     description VARCHAR(300),
     stars INT DEFAULT 5, 
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 

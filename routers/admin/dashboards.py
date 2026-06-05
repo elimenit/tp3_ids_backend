@@ -1,31 +1,46 @@
-"""Rutas para la gestión de dashboards.\n
-"""
-from flask import Blueprint
+from flask import Blueprint, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from utils.helpers import _is_admin, _get_date_range
+from database.admin.dashboard import (
+    db_get_reservations_dashboard,
+    db_get_delivery_dashboard,
+    db_get_reviews_dashboard,
+)
 
 adm_bp_dashboards = Blueprint("admin_dashboards", __name__, url_prefix="/admin/dashboards")
 
-@adm_bp_dashboards.route("/show", methods=['GET'])
-def show():
-    """Dashboard Principal.\n
-    """
-    pass
+@adm_bp_dashboards.get("/reservations")
+@jwt_required()
+def get_reservations_dashboard():
+    user_id = int(get_jwt_identity())
+    if not _is_admin(user_id):
+        return jsonify({"error": "Acceso no autorizado"}), 403
 
-# Users
-@adm_bp_dashboards.route("/users", methods=["GET"])
-def dashboard_users():
-    pass
+    inicio, fin = _get_date_range()
+    data = db_get_reservations_dashboard(inicio, fin)
+    return jsonify(data), 200
 
-# Deliveries
-@adm_bp_dashboards.route("/deliveries", methods=["GET"])
-def dashboard_deliveries():
-    pass
 
-# Menus
-@adm_bp_dashboards.route("/menus", methods=["GET"])
-def bashboard_menus():
-    pass
+@adm_bp_dashboards.get("/deliveries")
+@jwt_required()
+def get_deliveries_dashboard():
+    user_id = int(get_jwt_identity())
+    if not _is_admin(user_id):
+        return jsonify({"error": "Acceso no autorizado"}), 403
 
-# Reservations
-@adm_bp_dashboards.route("/reservations", methods=["GET"])
-def dashboard_reservations():
-    pass
+    inicio, fin = _get_date_range()
+    data = db_get_delivery_dashboard(inicio, fin)
+    return jsonify(data), 200
+
+
+@adm_bp_dashboards.get("/reviews")
+@jwt_required()
+def get_reviews_dashboard():
+    user_id = int(get_jwt_identity())
+    if not _is_admin(user_id):
+        return jsonify({"error": "Acceso no autorizado"}), 403
+
+    inicio, fin = _get_date_range()
+    data = db_get_reviews_dashboard(inicio, fin)
+    return jsonify(data), 200
