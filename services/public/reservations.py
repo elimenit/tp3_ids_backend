@@ -10,6 +10,7 @@ import secrets
 from database.public.reservations import (
     db_get_all_reservations,
     db_get_reservation_by_id,
+    db_get_reservations_by_user,
     db_get_reservation_by_token,
     db_get_all_tables,
     db_get_tables_availability,
@@ -27,6 +28,11 @@ VALID_STATUSES = ['Pending', 'Confirmed', 'Cancelled', 'Arrived']
 def service_get_all_reservations():
     """Devuelve todas las reservaciones. Uso: panel admin."""
     return db_get_all_reservations()
+
+
+def service_get_my_reservations(user_id):
+    """Devuelve solo las reservaciones del usuario logueado."""
+    return db_get_reservations_by_user(user_id)
 
 
 def service_get_reservation(reservation_id):
