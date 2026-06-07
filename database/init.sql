@@ -8,6 +8,7 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(200) NOT NULL,
     category ENUM ('normal', 'client', 'employee', 'admin', 'root', 'system') DEFAULT 'normal', 
+    status ENUM ('active', 'inactive') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP 
 );
 
@@ -17,7 +18,8 @@ CREATE TABLE menus (
     name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(500),
     price DECIMAL(10,2) NOT NULL,
-    available BOOLEAN DEFAULT TRUE
+    available BOOLEAN DEFAULT TRUE,
+    image_url VARCHAR(500)
 );
 
 CREATE TABLE restaurant_tables (
@@ -34,6 +36,7 @@ CREATE TABLE reservations (
     table_id INT,
     reservation_datetime DATETIME,
     status_reservation ENUM ('Pending', 'Confirmed', 'Cancelled', 'Arrived'),
+    qr_token VARCHAR(100) UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (table_id) REFERENCES restaurant_tables(id)
 );
@@ -79,3 +82,9 @@ VALUES ('drinks', 'jugo', 'pera', 15, 1), ('burgers', 'sandwich', 'ss', 15, 1), 
 
 INSERT INTO reservations (user_id, table_id, reservation_datetime, status_reservation)
 VALUES (2, 1, '2025-06-01 20:00:00', 'Arrived');
+
+INSERT INTO deliveries (user_id, address, status)
+VALUES (2, 'direccion', 'pending'), (2, 'otra_address', 'pending');
+
+INSERT INTO deliveries_menus (delivery_id, menu_id, quantity, qr_code)
+VALUES (1, 1, 2, 1), (1, 2, 1, 1), (2, 3, 10, 1);

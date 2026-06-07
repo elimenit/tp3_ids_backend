@@ -1,120 +1,68 @@
-"""Administracion de Usuarios.
-"""
-
-from flask import Blueprint, request, jsonify
-
-from database.public.users import (
-    db_get_user, db_create_user,db_update_user, db_delete_user
-)
-from utils.error import error_response
-
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from services.public.users import (
-    validation_creation, validation_id_user
+    create_user, delete_user, update_user_complete, 
+    update_user_partial, obtain_user
 )
 
 public_bp_users = Blueprint("public_users", __name__)
 
-@public_bp_users.route(rule="/<int:id>", methods=["GET"])
-def get_user(id: int):
-    """Obtiene un Usuario.\n
-    """
-    try:
-        user = db_get_user(id)
-    except Exception as e:
-        return error_response(message="Usuario No encontrado", description=f"error: {e}", status_code=404)
-  
-    return jsonify(
-        {
-            "id": user[0],
-            "name": user[1],
-            "email": user[2],
-            "category": user[3],
-            "date": user[4],
-        }
-    ), 200
 
-@public_bp_users.route("/", methods=["POST"])
+@public_bp_users.route("/", methods=['POST'])
 def create():
-    body = request.get_json()
-    print(body)
-    if not body:
-        return error_response(
-            "Cuerpo vacio",
-            "Vacio",
-            400
-        )
-    name: str = body.get('name', None)
-    email: str = body.get('email', None)
-    password: str = body.get('password', None)
+    data = request.get_json()
+    if not data:
+        raise ValueError("El cuerpo no puede estar vacío")
+    
+    token = create_user(
+        data.get('name', ''),
+        data.get('email', ''),
+        data.get('password', '')
+    )
+    return jsonify({"token": token}), 201
 
-    if not validation_creation(name, email, password):
-        return error_response(
-            "Campos Invalidos",
-            "Uno o mas campos invalidos",
-            400
-        )
-    name = name.strip().lower()
-    email = email.strip().lower()
-    password = password.strip()
-    try:
-        id_user = db_create_user(name, email, password)
-    except Exception as e:
-        return error_response(
-            "Usuario ya existe",
-            f"El error: {e}",
-            400
-        )
-    return jsonify({"id": id_user}), 201
 
-@public_bp_users.route(rule="/<int:id>", methods=["PUT"])
-def update(id: int):
-    """Actualizar Usuario.\n
-    """
-    body = request.get_json()
-    if not body:
-        return error_response(
-            "Cuerpo vacio",
-            "Vacio",
-            400
-        )
-    name: str = body.get('name', None)
-    password: str = body.get('password', None)
+@public_bp_users.route("/me", methods=['GET'])
+@jwt_required()
+def get_user():
+    user_id = int(get_jwt_identity())
+    print(f"user_id: {user_id}")
+    user = obtain_user(user_id)
+    return jsonify(user), 200
 
-    try:
-        db_update_user(id, name, password)
-    except Exception as e:
-        print(e)
-        return error_response(
-            "No se Encontro al usuario",
-            f"Error:{e}",
-            404
-        )
-    return jsonify(), 204
- 
 
-@public_bp_users.route(rule="/<int:id>", methods=["PATCH"])
-def partial_update(id: int):
-    """Actualizacion Parcial.\n
-    """
-    pass
+@public_bp_users.route("/me", methods=['PUT'])
+@jwt_required()
+def update_user():
+    user_id = int(get_jwt_identity())
+    data = request.get_json()
+    if not data:
+        raise ValueError("El cuerpo no puede estar vacío")
+    
+    token = update_user_complete(
+        user_id,
+        data.get('name', ''),
+        data.get('password', '')
+    )
+    return jsonify({"token": token}), 200
 
-@public_bp_users.route(rule="/<int:id>", methods=["DELETE"])
-def delete(id: int):
-    """ Eliminar un Usuario.\n
-    """
-    if not validation_id_user(id):
-        return error_response(
-            "Id Invalido",
-            "Id del usuario fuera de rango",
-            400
-        )
-    try:
-        email = db_delete_user(id)
-    except Exception as e:
-        return error_response(
-            "El usuario no fue encontrado",
-           f"error: {e}",
-           404
-        )
-        
-    return jsonify({"id": id, "email": email}), 200
+
+@public_bp_users.route("/me", methods=['PATCH'])
+@jwt_required()
+def partial_update_user():
+    user_id = int(get_jwt_identity())
+
+    data = request.get_json()
+    if not data:
+        raise ValueError("El cuerpo no puede estar vacío")
+    
+    token = update_user_partial(user_id, data)
+    return jsonify({"token": token}), 200
+
+
+@public_bp_users.route("/me", methods=['DELETE'])
+@jwt_required()
+def delete():
+    user_id = int(get_jwt_identity())
+    delete_user(user_id)
+    return "", 204

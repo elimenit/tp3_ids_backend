@@ -1,6 +1,10 @@
 flask
-flask_cors
-python_dotenv
+flask-cors
+python-dotenv
 mysql-connector-python
 requests
 pytest
+bcrypt
+Flask-JWT-Extended
+qrcode[pil]       
+Pillow            
