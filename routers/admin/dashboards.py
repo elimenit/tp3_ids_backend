@@ -8,7 +8,7 @@ from database.admin.dashboard import (
     db_get_reviews_dashboard,
 )
 
-adm_bp_dashboards = Blueprint("admin_dashboards", __name__, url_prefix="/admin/dashboards")
+adm_bp_dashboards = Blueprint("admin_dashboards", __name__)
 
 @adm_bp_dashboards.get("/reservations")
 @jwt_required()

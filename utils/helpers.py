@@ -6,10 +6,13 @@ from flask import request
 
 def _execute_query(query: str, params: tuple) -> list:
     """Ejecuta una query con los parámetros dados y retorna todos los resultados."""
-    with get_connection() as conn:
-        with conn.cursor(dictionary=True) as cursor:
-            cursor.execute(query, params)
-            return cursor.fetchall()  # type: ignore
+    try:
+        with get_connection() as conn:
+            with conn.cursor(dictionary=True) as cursor:
+                cursor.execute(query, params)
+                return cursor.fetchall()  # type: ignore
+    except Exception:
+        print(query)
         
 def _is_admin(user_id: int) -> bool:
     """Verifica que el usuario sea administrador."""
@@ -23,5 +26,4 @@ def _get_date_range() -> tuple[str, str]:
 
     inicio = request.args.get("inicio", default_inicio.strftime("%Y-%m-%d"))
     fin = request.args.get("fin", default_fin.strftime("%Y-%m-%d"))
-
     return inicio, fin
