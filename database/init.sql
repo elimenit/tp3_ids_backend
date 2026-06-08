@@ -7,9 +7,9 @@ CREATE TABLE users (
     name VARCHAR(100),
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(200) NOT NULL,
-    category ENUM ('normal', 'client', 'employee', 'admin', 'root', 'system') DEFAULT 'normal', 
+    category ENUM ('normal', 'client', 'employee', 'admin', 'root', 'system') DEFAULT 'normal',
     status ENUM ('active', 'inactive') DEFAULT 'active',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP 
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE menus (
@@ -26,7 +26,7 @@ CREATE TABLE restaurant_tables (
     id INT AUTO_INCREMENT PRIMARY KEY,
     table_number INT NOT NULL UNIQUE,
     capacity INT NOT NULL,
-    status ENUM ('available', 'occupied', 'reserved'), 
+    status ENUM ('available', 'occupied', 'reserved'),
     price INT DEFAULT 0
 );
 
