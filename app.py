@@ -20,12 +20,12 @@ from routers.admin.users import adm_bp_users
 from routers.admin.menus import adm_bp_menus
 from routers.admin.dashboards import adm_bp_dashboards
 from routers.admin.reservations import adm_bp_reservations
+from constants import SECRET_KEY, FLASK_HOST, FLASK_PORT
 
 def create_app()-> Flask:
-    # 1. Configuraciones Globales
     app = Flask(__name__)
     app.config['JSON_AS_ASCII'] = False  # Para manejar tildes y Ñ en JSON
-    app.config['SECRET_KEY'] = 'tu_llave_secreta_muy_segura' # Cambiar por variable de entorno
+    app.config['SECRET_KEY'] = SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15) # Tiempo de expiración del token JWT
 
     # 2. Administrar CORS
@@ -37,6 +37,7 @@ def create_app()-> Flask:
     
     app.register_blueprint(public_bp_delivery, url_prefix="/public/deliveries")
     app.register_blueprint(public_bp_login, url_prefix="/public/login")
+    app.register_blueprint(public_bp_tables, url_prefix="/public/tables")
     app.register_blueprint(public_bp_menu, url_prefix="/public/menus")
     app.register_blueprint(public_bp_reservations, url_prefix="/public/reservations")
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
@@ -45,7 +46,8 @@ def create_app()-> Flask:
     app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboards")
     app.register_blueprint(adm_bp_menus, url_prefix="/admin/menus")
     app.register_blueprint(adm_bp_reservations, url_prefix="/admin/reservations")
-    
+   
+   
     # Errores
     @app.errorhandler(ValueError)
     def not_found(error):
@@ -75,7 +77,7 @@ def create_app()-> Flask:
 def main():
     app = Flask(__name__)
     app = create_app()
-    app.run(host="localhost", port=15000, debug=False) # debug=True -> Llama dos veces las querys del archivo init.sql.
+    app.run(host=FLASK_HOST, port=FLASK_PORT, debug=False)
 
 if __name__ == '__main__':
     build_initial_database()
