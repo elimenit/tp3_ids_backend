@@ -18,7 +18,8 @@ CREATE TABLE menus (
     name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(500),
     price DECIMAL(10,2) NOT NULL,
-    available BOOLEAN DEFAULT TRUE
+    available BOOLEAN DEFAULT TRUE,
+    image_url VARCHAR(500)
 );
 
 CREATE TABLE restaurant_tables (
@@ -27,14 +28,6 @@ CREATE TABLE restaurant_tables (
     capacity INT NOT NULL,
     status ENUM ('available', 'occupied', 'reserved'), 
     price INT DEFAULT 0
-);
-
-CREATE TABLE reviews (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    description VARCHAR(300),
-    stars INT DEFAULT 5, 
-    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE reservations (
@@ -46,6 +39,17 @@ CREATE TABLE reservations (
     qr_token VARCHAR(100) UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (table_id) REFERENCES restaurant_tables(id)
+);
+
+CREATE TABLE reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    reservation_id INT NOT NULL,
+    description VARCHAR(300) NOT NULL,
+    stars INT NOT NULL CHECK (stars >= 1 AND stars <= 5),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE CASCADE
 );
 
 CREATE TABLE deliveries (
