@@ -4,7 +4,7 @@ ejecutenlo asi porque sino se ejecuta dos veces este archivo-> se ejecutan 2 vec
 """
 from datetime import timedelta
 
-from flask import Flask, app, jsonify
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
@@ -20,6 +20,7 @@ from routers.admin.users import adm_bp_users
 from routers.admin.menus import adm_bp_menus
 from routers.admin.dashboards import adm_bp_dashboards
 from routers.admin.reservations import adm_bp_reservations
+from routers.admin.extra_services import adm_bp_extra_services
 
 def create_app()-> Flask:
     # 1. Configuraciones Globales
@@ -45,6 +46,7 @@ def create_app()-> Flask:
     app.register_blueprint(adm_bp_menus, url_prefix="/admin/menus")
     app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboard")
     app.register_blueprint(adm_bp_reservations, url_prefix="/admin/reservations")
+    app.register_blueprint(adm_bp_extra_services, url_prefix="/admin/extra-services")
     
     # Errores
     @app.errorhandler(ValueError)
@@ -73,7 +75,6 @@ def create_app()-> Flask:
     return app
 
 def main():
-    app = Flask(__name__)
     app = create_app()
     app.run(host="localhost", port=15000, debug=False) # debug=True -> Llama dos veces las querys del archivo init.sql.
 
