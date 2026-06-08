@@ -81,6 +81,33 @@ def db_get_reservation_by_id(reservation_id):
         return None
 
 
+def db_get_reservations_by_user(user_id):
+    """Trae todas las reservaciones de un usuario específico."""
+    try:
+        conn   = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute("""
+                SELECT
+                    r.id,
+                    r.reservation_datetime,
+                    r.status_reservation,
+                    t.table_number,
+                    t.capacity
+                FROM reservations r
+                JOIN restaurant_tables t ON r.table_id = t.id
+                WHERE r.user_id = %s
+                ORDER BY r.reservation_datetime DESC
+            """, (user_id,))
+            return cursor.fetchall()
+        finally:
+            cursor.close()
+            conn.close()
+    except Exception as e:
+        print(f"Error en db_get_reservations_by_user: {e}")
+        return None
+
+
 def db_get_reservation_by_token(token):
     """
     Trae una reservacion por su token unico.

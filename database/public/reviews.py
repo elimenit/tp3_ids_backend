@@ -1,40 +1,33 @@
 from database.db import get_connection
 
-def db_get_reviews() -> list:
+def db_get_reviews(limit: int = 10, offset: int = 0) -> list:
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
     query = """
-    SELECT r.id, r.user_id, u.name, r.reservation_id, r.description, r.stars, r.created_at
+    SELECT r.id, r.user_id, u.name AS user_name, r.reservation_id, r.description, r.stars, r.created_at
     FROM reviews r
     JOIN users u ON r.user_id = u.id
-    ORDER BY r.created_at DESC;
+    ORDER BY r.created_at DESC
+    LIMIT %s OFFSET %s;
     """
-    cursor.execute(query)
+    cursor.execute(query, (limit, offset))
     rows = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
-    reviews = []
     for row in rows:
-        reviews.append({
-            "id": row[0],
-            "user_id": row[1],
-            "user_name": row[2],
-            "reservation_id": row[3],
-            "description": row[4],
-            "stars": row[5],
-            "created_at": str(row[6])
-        })
-    return reviews
+        row["created_at"] = str(row["created_at"])
+
+    return rows
 
 def db_get_review(review_id: int) -> dict | None:
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
     query = """
-    SELECT r.id, r.user_id, u.name, r.reservation_id, r.description, r.stars, r.created_at
+    SELECT r.id, r.user_id, u.name AS user_name, r.reservation_id, r.description, r.stars, r.created_at
     FROM reviews r
     JOIN users u ON r.user_id = u.id
     WHERE r.id = %s;
@@ -48,15 +41,24 @@ def db_get_review(review_id: int) -> dict | None:
     if not row:
         return None
 
-    return {
-        "id": row[0],
-        "user_id": row[1],
-        "user_name": row[2],
-        "reservation_id": row[3],
-        "description": row[4],
-        "stars": row[5],
-        "created_at": str(row[6])
-    }
+    row["created_at"] = str(row["created_at"])
+    return row
+
+def db_get_review_by_reservation(user_id: int, reservation_id: int) -> dict | None:
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    query = """
+    SELECT id FROM reviews
+    WHERE user_id = %s AND reservation_id = %s;
+    """
+    cursor.execute(query, (user_id, reservation_id))
+    row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return row
 
 def db_create_review(user_id: int, reservation_id: int, description: str, stars: int) -> int:
     conn = get_connection()
@@ -79,7 +81,6 @@ def db_update_review(review_id: int, user_id: int, description: str, stars: int)
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Solo puede editar su propia reseña (user_id debe coincidir)
     query = """
     UPDATE reviews
     SET description = %s, stars = %s
@@ -98,7 +99,6 @@ def db_delete_review(review_id: int, user_id: int) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Solo puede borrar su propia reseña (user_id debe coincidir)
     query = """
     DELETE FROM reviews
     WHERE id = %s AND user_id = %s;

@@ -42,8 +42,8 @@ def create_app()-> Flask:
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
     app.register_blueprint(public_bp_reviews, url_prefix="/public/reviews")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
+    app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboards")
     app.register_blueprint(adm_bp_menus, url_prefix="/admin/menus")
-    app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboard")
     app.register_blueprint(adm_bp_reservations, url_prefix="/admin/reservations")
     
     # Errores
