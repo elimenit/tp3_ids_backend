@@ -10,28 +10,27 @@ inicializar_tecnologias() {
 
 configuracion_punto_env() {
 
-    echo -ne "MYSQL_USER='root'\nMYSQL_NAME_DB='restaurant'\nMYSQL_PASSWORD='password'\n" > .env
-    echo -ne "MYSQL_PORT=3306\nMYSQL_HOST='127.0.0.1'\nFLASK_HOST='127.0.0.1'\nFLASK_PORT=15000\n" >> .env 
+    echo -ne "MYSQL_USER='root'\nMYSQL_NAME_DB='restaurant'\nMYSQL_PASSWORD='userpass'\nMYSQL_HOST='db'\n" > .env
+    echo -ne "MYSQL_PORT=3306\nFLASK_HOST='0.0.0.0'\nFLASK_PORT=15000\n" >> .env 
     echo -ne "SECRET_KEY='Clave_super_secreta_de_flask_seguridad'\n" >> .env
     echo "[+] Archivo .env creado"
 }
 
-correr_aplicacion_backend() {
-    if [[ ! -d ".venv" ]]; then
-        python3 -m venv .venv
-    fi
-    source .venv/bin/activate
-    pip install -r requirements.txt --resume-retries=30
-    salir_error
-    if [[ -f "app.py" ]]; then
-        python3 -m app
-    else
-        echo "[-] No existe app.py"
-        exit 1
-    fi
-    
+correr_dockerfile() {
+    docker build --load -t tp3_backend .
+    docker run --name tp3_backend -p 15000:15000 tp3_backend
+    docker container rm tp3_backend
+    docker image rm tp3_backend
 }
-
+correr_docker_compose () {
+    echo "Construiendo Contenedores"
+    docker compose up --build
+    echo "Contenedores construidos.., Vamos a colocarlos en espera de 100 segundos!."
+    sleep 100
+    echo "Eliminando contenedores"
+    docker compose down
+    echo "Contenedores eliminados"
+}
 salir_error() {
 
     if [[ $? -ne 0 ]]; then
@@ -43,7 +42,7 @@ salir_error() {
 main() {
 
     echo "Actualizando e instalando servicios necesarios ..."
-    inicializar_tecnologias
+    #inicializar_tecnologias
     salir_error
 
     NAME_DB="root"
@@ -58,7 +57,7 @@ main() {
     salir_error
 
     echo "Corriendo aplicación backend ..."
-    correr_aplicacion_backend
+    correr_docker_compose
 }
 
 main
