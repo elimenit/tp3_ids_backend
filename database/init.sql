@@ -18,7 +18,8 @@ CREATE TABLE menus (
     name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(500),
     price DECIMAL(10,2) NOT NULL,
-    available BOOLEAN DEFAULT TRUE
+    available BOOLEAN DEFAULT TRUE,
+    image_url VARCHAR(500)
 );
 
 CREATE TABLE restaurant_tables (
@@ -27,14 +28,6 @@ CREATE TABLE restaurant_tables (
     capacity INT NOT NULL,
     status ENUM ('available', 'occupied', 'reserved'), 
     price INT DEFAULT 0
-);
-
-CREATE TABLE reviews (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    description VARCHAR(300),
-    stars INT DEFAULT 5, 
-    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE reservations (
@@ -46,6 +39,17 @@ CREATE TABLE reservations (
     qr_token VARCHAR(100) UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (table_id) REFERENCES restaurant_tables(id)
+);
+
+CREATE TABLE reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    reservation_id INT NOT NULL,
+    description VARCHAR(300) NOT NULL,
+    stars INT NOT NULL CHECK (stars >= 1 AND stars <= 5),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE CASCADE
 );
 
 CREATE TABLE deliveries (
@@ -75,3 +79,12 @@ VALUES (1, 4, 'available', 0), (2, 4, 'available', 0), (3, 6, 'available', 10), 
 
 INSERT INTO menus (category, name, description, price, available)
 VALUES ('drinks', 'jugo', 'pera', 15, 1), ('burgers', 'sandwich', 'ss', 15, 1), ('pasta', 'canelones', 'pera', 15, 1);
+
+INSERT INTO reservations (user_id, table_id, reservation_datetime, status_reservation)
+VALUES (2, 1, '2025-06-01 20:00:00', 'Arrived');
+
+INSERT INTO deliveries (user_id, address, status)
+VALUES (2, 'direccion', 'pending'), (2, 'otra_address', 'pending');
+
+INSERT INTO deliveries_menus (delivery_id, menu_id, quantity, qr_code)
+VALUES (1, 1, 2, 1), (1, 2, 1, 1), (2, 3, 10, 1);

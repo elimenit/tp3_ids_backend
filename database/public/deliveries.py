@@ -1,29 +1,35 @@
 from database.db import get_connection
 
-def db_get_deliveries(user_id: int)-> list:
+def db_get_deliveries(user_id: int)-> list | None:
     conn = get_connection()
     cursor = conn.cursor()
     # Validaciones
 
     # Caso Feliz
     query = """
-    SELECT id, addres, delivery_datetime
+    SELECT id, address, delivery_datetime
     FROM deliveries 
     WHERE user_id = %s;
     """
-    cursor.execute(query, (user_id))
+    cursor.execute(query, (user_id, ))
     
     deliveries_db = cursor.fetchall()
+    if deliveries_db is None:
+        cursor.close()
+        conn.close()
+        return None
+    print(deliveries_db)
     deliveries = []
     for delivery in deliveries_db:
         delivery_model: dict = {}
         delivery_model["id"] = delivery[0]
         delivery_model["addres"] = delivery[1]
         delivery_model["datetime"] = delivery[2]
+        deliveries.append(delivery_model)
 
     return deliveries
 
-def db_get_delivery(user_id: int, delivery_id: int):
+def db_get_delivery(user_id: int, delivery_id: int)-> dict | None:
     conn = get_connection()
     cursor = conn.cursor()
     # Validaciones
@@ -36,6 +42,8 @@ def db_get_delivery(user_id: int, delivery_id: int):
     """
     cursor.execute(query, (user_id, delivery_id))
     info_delivery = cursor.fetchone()
+    if info_delivery is None:
+        return None
 
     delivery = {
         "id": delivery_id,
@@ -52,7 +60,7 @@ def db_get_delivery(user_id: int, delivery_id: int):
     """
     cursor.execute(query, (delivery_id, ))
     info_menus = cursor.fetchall()
-    
+
     for menu in info_menus:
         t: dict = {}
         t["id"] = menu[0]

@@ -15,7 +15,9 @@ from routers.public.deliveries import public_bp_delivery
 from routers.public.menus import public_bp_menu
 from routers.public.reservations import public_bp_reservations
 from routers.public.users import public_bp_users
+from routers.public.reviews import public_bp_reviews
 from routers.admin.users import adm_bp_users
+from routers.admin.menus import adm_bp_menus
 from routers.admin.dashboards import adm_bp_dashboards
 from routers.admin.reservations import adm_bp_reservations
 
@@ -35,10 +37,12 @@ def create_app()-> Flask:
     
     app.register_blueprint(public_bp_delivery, url_prefix="/public/deliveries")
     app.register_blueprint(public_bp_login, url_prefix="/public/login")
-    app.register_blueprint(public_bp_menu, url_prefix="/public/menu")
+    app.register_blueprint(public_bp_menu, url_prefix="/public/menus")
     app.register_blueprint(public_bp_reservations, url_prefix="/public/reservations")
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
+    app.register_blueprint(public_bp_reviews, url_prefix="/public/reviews")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
+    app.register_blueprint(adm_bp_menus, url_prefix="/admin/menus")
     app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboard")
     app.register_blueprint(adm_bp_reservations, url_prefix="/admin/reservations")
     
@@ -71,7 +75,7 @@ def create_app()-> Flask:
 def main():
     app = Flask(__name__)
     app = create_app()
-    app.run(host="localhost", port=5000, debug=False) # debug=True -> Llama dos veces las querys del archivo init.sql.
+    app.run(host="localhost", port=15000, debug=False) # debug=True -> Llama dos veces las querys del archivo init.sql.
 
 if __name__ == '__main__':
     build_initial_database()
