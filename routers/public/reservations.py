@@ -10,6 +10,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from services.public.reservations import (
     service_get_all_reservations,
+    service_get_my_reservations,
     service_get_reservation,
     service_get_tables,
     service_create_reservation,
@@ -51,6 +52,22 @@ def get_one(id):
         return jsonify({"error": "Reservacion no encontrada"}), 404
 
     return jsonify(reserva), 200
+
+
+@public_bp_reservations.route("/me", methods=["GET"])
+@jwt_required()
+def get_my_reservations():
+    """
+    Devuelve las reservaciones del usuario logueado.
+    GET /public/reservations/me
+    """
+    user_id = get_jwt_identity()
+    reservas = service_get_my_reservations(user_id)
+
+    if reservas is None:
+        return jsonify({"error": "Error al obtener las reservaciones"}), 500
+
+    return jsonify(reservas), 200
 
 
 @public_bp_reservations.route("/tables", methods=["GET"])
