@@ -26,19 +26,20 @@ def build_initial_database() -> None:
         print("*** Inizializando la Base de datos! ***")
         # 1. Conexión inicial (sin base de datos específica todavía)
         print("Esperemos a que mysql levante...")
-        time.sleep(15)
+
         conn = None
         i = 0
         is_run_mysql: bool = False
-        while not is_run_mysql and i < 15:
+        while not is_run_mysql and i < 3:
             try: 
             
                 conn = mysql.connector.connect(**DB_CONFIG)
+                print("[+] MySQL Corriendo y conectados...")
                 is_run_mysql = True
             except Exception as e:
                 i += 1
                 print(f"{str(i)}: Esperando conexion de mysql...: {e}")
-                time.sleep(2)
+                time.sleep(10)
 
         
         if is_run_mysql:
