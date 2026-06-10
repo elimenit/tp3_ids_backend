@@ -16,6 +16,7 @@ from routers.public.menus import public_bp_menu
 from routers.public.reservations import public_bp_reservations
 from routers.public.users import public_bp_users
 from routers.public.reviews import public_bp_reviews
+from routers.public.tables import public_bp_tables
 from routers.admin.users import adm_bp_users
 from routers.admin.menus import adm_bp_menus
 from routers.admin.dashboards import adm_bp_dashboards
