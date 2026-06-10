@@ -14,7 +14,7 @@ CREATE TABLE users (
 
 CREATE TABLE menus (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    category ENUM ('drinks', 'burgers', 'pasta', 'soup'),
+    category VARCHAR(50) NOT NULL,
     name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(500),
     price DECIMAL(10,2) NOT NULL,
