@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text      import MIMEText
 from email.mime.image     import MIMEImage
  
-FRONTEND_URL = "http://localhost:5001"
+FRONTEND_URL = "http://localhost:10000"  
  
  
 def enviar_email_reserva(destinatario, nombre, reserva_id,
