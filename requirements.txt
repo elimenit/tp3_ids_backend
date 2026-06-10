@@ -1,0 +1,10 @@
+flask
+flask-cors
+python-dotenv
+mysql-connector-python
+requests
+pytest
+bcrypt
+Flask-JWT-Extended
+qrcode[pil]       
+Pillow            

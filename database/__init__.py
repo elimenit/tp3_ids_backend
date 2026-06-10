@@ -1,0 +1,20 @@
+"""Consultas a La Base de datos.\n
+Traductor:
+-- employee=empleado, kitchen=cocina, camarero/mozo=waiter,
+-- invoice=factura(boleta), amount=monto(money)
+-- CATEGORY='admin' 'employee' 
+-- reviews=reseñas, starts=estrellas
+-- customers=clientes, reservations=reservas, tables=mesas, menu_items=menu,
+-- menu_categories=categoria del menu, orders=pedidos, order_items=,detalles del pedido
+-- employees=empleados, users=usuarios del sistema, 
+-- El tipo de menu = 'drinks' 'desserts' 'pasta' 'burger' ...
+* stock -> INDICA LA CANTIDAD D MENUS
+"""
+"""
+Un Usuario paga por la mesa en la que va ha estar y por el menu.
+-> Order -> Tables -> Menus-> Fechas -> Payments -> Email(QR)
+-> Reserva -> Tables -> Menus -> Fechas -> Payments-> Email(QR)
+-> Delivery -> Menus -> Email(QR) -> Payments
+** Antes de insertar una orden debemos insertar los datos a tablas_menus;
+** Una orden una mesa y una mesa varios menus
+"""
