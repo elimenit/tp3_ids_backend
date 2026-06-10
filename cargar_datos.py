@@ -55,9 +55,15 @@ def agregar_mesas():
 
 def agregar_menus():
     menus = [
-        {"category": "drinks",  "name": "Jugo",      "description": "Jugo de naranja",    "price": 1500, "image_url": "https://pasteleriasanantonio.com/carta-digital/wp-content/uploads/2024/09/lucuma.png"},
-        {"category": "burgers", "name": "Hamburguesa",  "description": "hamburguesa completa",  "price": 15000, "image_url": "https://www.recetasnestle.com.ec/sites/default/files/srh_recipes/4e4293857c03d819e4ae51de1e86d66a.jpg"},
-        {"category": "pasta",   "name": "Canelones", "description": "Canelones caseros", "price": 20000, "image_url": "www.miguelvergara.com/actualidad/wp-content/uploads/2024/01/canelones-de-carne-1200x860.jpg"},
+        {"category": "bebidas",      "name": "Jugo de naranja",     "description": "Jugo de naranja exprimido",          "price": 1500,  "image_url": "https://pasteleriasanantonio.com/carta-digital/wp-content/uploads/2024/09/lucuma.png"},
+        {"category": "bebidas",      "name": "Pepsi",               "description": "Pepsi 500ml",                        "price": 2000,  "image_url": "https://www.pepsi.co.za/wp-content/uploads/2024/08/Pepsi-Original-500ml.png"},
+        {"category": "hamburguesas", "name": "Hamburguesa clásica", "description": "Hamburguesa con lechuga y tomate",   "price": 15000, "image_url": "https://i.pinimg.com/736x/2c/25/3c/2c253c6c7fd3a4d4f54c7821aa931bbe.jpg"},
+        {"category": "hamburguesas", "name": "Burger BBQ",          "description": "Burger con salsa BBQ y cheddar",     "price": 18000, "image_url": "https://tienda.customculinary.mx/cdn/shop/articles/burger-cheddar-baconn_copy.jpg?v=1673410421&width=3543"},
+        {"category": "pastas",       "name": "Canelones caseros",   "description": "Canelones rellenos de carne",        "price": 20000, "image_url": "https://www.miguelvergara.com/actualidad/wp-content/uploads/2024/01/canelones-de-carne-1200x860.jpg"},
+        {"category": "pastas",       "name": "Spaghetti bolognesa", "description": "Spaghetti con salsa de carne",       "price": 17000, "image_url": "https://cielitorosado.com/wp-content/uploads/2022/07/ESPAGUETIS-EN-SALSA-DE-CARNE-Y-SALCHICHITAS-sm.jpg"},
+        {"category": "sopas",        "name": "Caldo de pollo",      "description": "Caldo casero con verduras y pollo",  "price": 7500,  "image_url": "https://static.bainet.es/clip/f8fb8a70-9b61-4a54-ab9c-b71f46493f12_source-aspect-ratio_1600w_0.jpg"},
+        {"category": "postres",      "name": "Tiramisú",            "description": "Tiramisú tradicional italiano",      "price": 9000,  "image_url": "https://cdn.blog.paulinacocina.net/wp-content/uploads/2020/01/receta-de-tiramisu-facil-y-economico-1740483918.jpg"},
+        {"category": "postres",      "name": "Brownie con helado",  "description": "Brownie de chocolate con helado",    "price": 10000, "image_url": "https://web-app-prod-01.nyc3.cdn.digitaloceanspaces.com/ryf_media/s6OkbzGRD8quFTZGdkSHTpoHpGoSSGtuHeTVY7OS.jpg"},
     ]
     print("Agregando menús...")
     for menu in menus:
@@ -125,6 +131,48 @@ def agregar_reservas_y_resenas():
         }, headers=headers_usuario, timeout=5)
         print(f"  Reseña ({datos['stars']}★) para {datos['email']}: {r.status_code}")
 
+def probar_admin_reservaciones():
+    print("Probando endpoints admin de reservaciones...")
+
+    # Listar todas las reservas
+    r = requests.get(url=f"{URL}/admin/reservations/", headers=HEADERS, timeout=5)
+    print(f"  GET /admin/reservations/: {r.status_code}")
+    if r.status_code != 200 or not r.json():
+        print("  No hay reservas para probar el resto, salteando.")
+        return
+
+    reserva_id = r.json()[0]["id"]
+    print(f"  Usando reserva id={reserva_id} para las pruebas")
+
+    # Ver una reserva específica
+    r = requests.get(url=f"{URL}/admin/reservations/{reserva_id}", headers=HEADERS, timeout=5)
+    print(f"  GET /admin/reservations/{reserva_id}: {r.status_code}")
+
+    # Cambiar estado a Confirmed
+    r = requests.post(url=f"{URL}/admin/reservations/{reserva_id}/estado",
+        json={"status_reservation": "Confirmed"}, headers=HEADERS, timeout=5)
+    print(f"  POST estado=Confirmed: {r.status_code} — {r.json()}")
+
+    # Cambiar estado a Arrived
+    r = requests.post(url=f"{URL}/admin/reservations/{reserva_id}/estado",
+        json={"status_reservation": "Arrived"}, headers=HEADERS, timeout=5)
+    print(f"  POST estado=Arrived: {r.status_code} — {r.json()}")
+
+    # Crear una reserva nueva para probar el DELETE
+    headers_usuario = {"Content-Type": "application/json"}
+    r = requests.post(url=f"{URL}/public/login/",
+        json={"email": "test1@restaurant.com", "password": "pass1234"},
+        headers=headers_usuario, timeout=5)
+    if r.status_code == 200:
+        headers_usuario["Authorization"] = f"Bearer {r.json()['token']}"
+        r = requests.post(url=f"{URL}/public/reservations/",
+            json={"table_id": 4, "fecha": "2026-12-01", "hora": "20"},
+            headers=headers_usuario, timeout=5)
+        if r.status_code == 201:
+            nueva_id = r.json()["reserva_id"]
+            r = requests.delete(url=f"{URL}/admin/reservations/{nueva_id}", headers=HEADERS, timeout=5)
+            print(f"  DELETE /admin/reservations/{nueva_id}: {r.status_code} — {r.json()}")
+
 def main():
     print("=== Cargando datos de prueba ===")
 
@@ -139,6 +187,7 @@ def main():
     agregar_menus()
     agregar_usuarios()
     agregar_reservas_y_resenas()
+    probar_admin_reservaciones()
 
     print("=== Datos cargados correctamente ===")
 
