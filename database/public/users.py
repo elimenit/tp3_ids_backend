@@ -1,6 +1,9 @@
 from database.db import get_connection
+from utils.helpers import build_update_query
+
 from datetime import datetime
 
+ALLOWED_FIELDS = {"name", "email", "category", "password"}
 
 def db_get_user(id: int = 0, email: str = "") -> dict:
     """
@@ -10,8 +13,6 @@ def db_get_user(id: int = 0, email: str = "") -> dict:
     """
     if not id and not email:
         raise ValueError("Se requiere id o email para buscar un usuario")
-
-    print(f"Buscando usuario con id: {id} o email: {email}")
 
     with get_connection() as conn:
         with conn.cursor(dictionary=True) as cursor:
@@ -69,26 +70,16 @@ def db_create_user(name: str, email: str, password: str, category: str = "normal
 def db_update_user_flexible(id: int, updates: dict) -> None:
     """
     Actualiza un usuario con los campos especificados en el diccionario updates.
-    Solo permite actualizar name y password.
-
-    Ejemplo: db_update_user_flexible(1, {"name": "juan", "password": "hash"})
+    Los campos permitidos están definidos en la constante ALLOWED_FIELS definida arriba
     """
-    if not updates:
+    query, values = build_update_query("users", ALLOWED_FIELDS, updates)
+
+    if not query:
         return
-
-    ALLOWED_FIELDS = {"name", "password"}
-    safe_updates = {k: v for k, v in updates.items() if k in ALLOWED_FIELDS}
-
-    if not safe_updates:
-        return
-
-    fields = [f"{key} = %s" for key in safe_updates]
-    values = list(safe_updates.values()) + [id]
 
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            query = f"UPDATE users SET {', '.join(fields)} WHERE id = %s"
-            cursor.execute(query, tuple(values))
+            cursor.execute(query, values + (id,))
             conn.commit()
 
 
