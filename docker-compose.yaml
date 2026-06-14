@@ -1,0 +1,57 @@
+services:
+  db:
+    image: mysql:latest
+    container_name: mysql_db
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_NAME_DB}
+
+    ports:
+      - "${MYSQL_PORT}:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+    networks:
+      - backend_net
+
+
+  api:
+    build: .
+    container_name: flask_api
+    restart: unless-stopped
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    ports:
+      - "${FLASK_PORT}:15000"
+
+    environment:
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_NAME_DB: ${MYSQL_NAME_DB}
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      SECRET_KEY: ${SECRET_KEY}
+
+    networks:
+      - backend_net
+
+
+volumes:
+  mysql_data:
+
+networks:
+  backend_net:
+    driver: bridge
