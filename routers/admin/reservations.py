@@ -16,7 +16,7 @@ adm_bp_reservations = Blueprint("admin_reservations", __name__)
 def show():
     """Obtiene una lista de todas las reservaciones con paginación."""
     if not is_admin():
-        return jsonify({"error": "Acceso no autorizado"}), 403
+        return error_response('Error al obtener las reservaciones', 'Acceso no autorizado',status_code=403)
         
     limit = request.args.get('_limit', 10, type=int)
     offset = request.args.get('_offset', 0, type=int)
