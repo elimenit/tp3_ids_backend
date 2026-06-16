@@ -28,6 +28,7 @@ def _count_rows(table: str) -> int:
 
 def _execute_update_query(query: str, params: tuple = ()) -> list[dict]:
     """Ejecuta una query que modifica la base de datos con los parámetros dados y retorna la cantidad de registros afectados."""
+    print(f"\n\nQUERY DEL UPDATE {query} {str(params)}\n\n")
     try:
         with get_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:

@@ -9,11 +9,12 @@ def db_get_all_reservations(limit: int, offset: int) -> list[dict]:
     query = """
         SELECT
             r.id as id,
-            r.reservation_datetime,
+            DATE_FORMAT(r.reservation_datetime, '%Y-%m-%d') as fecha,
+            HOUR(r.reservation_datetime) as hora,
             r.status_reservation,
             u.email AS user_email,
             r.table_id as table_number,
-            r.people_amount as amount
+            r.people_amount as people_amount
         FROM reservations r
         JOIN users u ON r.user_id  = u.id
         ORDER BY r.reservation_datetime DESC
@@ -34,7 +35,7 @@ def db_get_reservation_by_id(reservation_id) -> dict | None:
             r.status_reservation,
             u.email AS user_email,
             r.table_id as table_number,
-            r.people_amount as amount
+            r.people_amount as people_amount
         FROM reservations r
         JOIN users u ON r.user_id  = u.id
         JOIN restaurant_tables t ON r.table_id = t.id
@@ -152,7 +153,7 @@ def db_update_reservation(id: int, updates: dict) -> None:
     params = values + (id,)
     affected_rows = _execute_update_query(query, params)
     if not affected_rows:
-        raise ValueError('No se han podido actualizar los campos.')
+        raise ValueError('No se han actualizado los campos. Es posible que los cambios propuestos sean idénticos a los valores actuales.')
     
 def db_check_previous_amount(reservation_id: int, table_id: int) -> bool:
     """Aplicada antes de hacer un cambio de mesa. 
@@ -171,7 +172,11 @@ def db_check_new_amount(reservation_id: int, amount: int) -> bool:
     query = """
         SELECT 1 FROM reservations r
         JOIN restaurant_tables rt ON r.table_id = rt.id
-        WHERE id = %s AND rt.capacity >= %s
+        WHERE r.id = %s AND rt.capacity >= %s
     """
     result = _execute_query(query, (reservation_id, amount))
     return bool(result)
+
+def db_check_reservation_date(reservation_id: int) -> bool:
+    """Revisa si una reserva es futura, en dicho caso devuelve True. Caso contrario False"""
+    return bool(_execute_query('SELECT 1 FROM reservations WHERE id = %s AND reservation_datetime > NOW()', (reservation_id,)))
