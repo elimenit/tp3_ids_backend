@@ -58,7 +58,6 @@ def update(user_id: int):
     data = request.get_json()
 
     try:
-        print(data)
         update_user(user_id, data)
         return jsonify({"mensaje": "Usuario actualizado correctamente"}), 200
 

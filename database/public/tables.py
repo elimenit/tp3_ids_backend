@@ -1,3 +1,4 @@
+from utils.helpers import _execute_query
 from database.db import get_connection
 
 def db_create_table(table_number: int, capacity: int, status: str, price: int)-> None:
@@ -22,3 +23,9 @@ def db_create_table(table_number: int, capacity: int, status: str, price: int)->
 
 def db_get_table(table_numer: int)-> dict:
     pass
+
+def db_check_table_capacity(table_id: int, amount: int) -> bool:
+    """Recibe el ID de mesa y un número. 
+    Si esa mesa existe y su capacidad no excede el número ingresado, devuelve True. Caso contrario False."""
+    result = _execute_query('SELECT capacity FROM restaurant_tables WHERE id = %s AND capacity >= %s', (table_id, amount))
+    return bool(result)

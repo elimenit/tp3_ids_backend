@@ -1,14 +1,9 @@
 from database.admin.users import db_list_users, db_count_users, db_admin_update_user, db_toggle_user_status
 from database.public.users import db_create_user
 from services.public.users import hash_password, validate_email, validate_password, validate_user_id
+from utils.validators import validar_limit_offset
 
 ALLOWED_CATEGORIES = {"normal", "client", "employee", "admin", "root", "system"}
-
-def validar_limit_offset(limit: int, offset: int):
-    is_validate: bool = False
-    if limit <= 10 and limit >= 0 and offset >= 0:
-        is_validate = True
-    return is_validate
 
 def validate_category(category: str):
     """Valida que la categoría sea una de las permitidas. Lanza ValueError si no lo es."""
