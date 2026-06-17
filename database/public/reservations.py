@@ -137,30 +137,46 @@ def db_get_reservation_by_token(token):
         return None
 
 
+# def db_get_all_tables():
+#     """
+#     Trae todas las mesas SIN filtro de disponibilidad.
+#     Se usa cuando el usuario todavia no eligio fecha y hora.
+#     """
+#     try:
+#         conn   = get_connection()
+#         cursor = conn.cursor(dictionary=True)
+#         try:
+#             cursor.execute("""
+#                 SELECT id, table_number, capacity, price, status
+#                 FROM restaurant_tables
+#                 ORDER BY table_number
+#             """)
+#             tables = cursor.fetchall()
+#             return tables
+#         finally:
+#             cursor.close()
+#             conn.close()
+
+#     except Exception as e:
+#         print(f"Error en db_get_all_tables: {e}")
+#         return None
+
+
 def db_get_all_tables():
-    """
-    Trae todas las mesas SIN filtro de disponibilidad.
-    Se usa cuando el usuario todavia no eligio fecha y hora.
-    """
+    conn = get_connection()
     try:
-        conn   = get_connection()
         cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute("""
-                SELECT id, table_number, capacity, price, status
-                FROM restaurant_tables
-                ORDER BY table_number
-            """)
-            tables = cursor.fetchall()
-            return tables
-        finally:
-            cursor.close()
-            conn.close()
-
-    except Exception as e:
-        print(f"Error en db_get_all_tables: {e}")
-        return None
-
+        cursor.execute("""
+            SELECT id, table_number, capacity, price,
+                   status,
+                   status AS estado
+            FROM restaurant_tables
+            ORDER BY table_number
+        """)
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
 
 def db_get_tables_availability(fecha, hora):
     """

@@ -53,7 +53,7 @@ def create_menu():
     image_url = body.get("image_url")
 
     if not validation_create_menu(category, name, description, price):
-        return error_response("Campos inválidos", "Revisá los campos. La categoría debe ser una de: drinks, burgers, pasta, soup", 400)
+        return error_response("Campos inválidos", "Revisá los campos enviados", 400)
 
     try:
         new_id = db_create_menu(category, name, description, price, image_url)
@@ -81,7 +81,7 @@ def update_menu(menu_id: int):
     image_url = body.get("image_url")
 
     if not validation_update_menu(category, name, description, price, available):
-        return error_response("Campos inválidos", "Revisá los campos. La categoría debe ser una de: drinks, burgers, pasta, soup", 400)
+        return error_response("Campos inválidos", "Revisá los campos enviados", 400)
 
     try:
         updated = db_update_menu(menu_id, category, name, description, price, available, image_url)
