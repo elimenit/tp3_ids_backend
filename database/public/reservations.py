@@ -75,7 +75,7 @@ def db_get_reservation_by_token(token) -> dict | None:
 def db_get_all_tables() -> list[dict]:
     """Trae todas las mesas SIN filtro de disponibilidad."""
     query = """
-        SELECT id, table_number, capacity, price,
+        SELECT id, table_number, capacity,
                status,
                status AS estado
         FROM restaurant_tables

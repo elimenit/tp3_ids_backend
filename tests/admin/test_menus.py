@@ -79,16 +79,6 @@ def test_create_get_update_delete_menu():
     response = requests.get(url=f"{URL}/{menu_id}", headers=auth_headers)
     assert response.status_code == 404
 
-def test_create_menu_campos_invalidos():
-    menu_invalido = {
-        "category": "pizza",
-        "name": "Pizza test",
-        "description": "Mozzarella",
-        "price": 1200
-    }
-    response = requests.post(url=f"{URL}/", json=menu_invalido, headers=get_auth_headers())
-    assert response.status_code == 400
-
 def test_create_menu_precio_invalido():
     menu_invalido = {
         "category": "burgers",

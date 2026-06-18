@@ -26,7 +26,6 @@ CREATE TABLE restaurant_tables (
     table_number INT NOT NULL UNIQUE,
     capacity INT NOT NULL,
     status ENUM ('available', 'occupied', 'reserved'),
-    price INT DEFAULT 0
 );
 
 CREATE TABLE reservations (

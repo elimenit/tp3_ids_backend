@@ -14,7 +14,7 @@ def registrar_admin():
         "name": "admin",
         "email": ADMIN_EMAIL,
         "password": ADMIN_PASSWORD
-    }, headers=HEADERS, timeout=5)
+    }, headers=HEADERS)
     if r.status_code == 201:
         print("  Admin registrado")
     else:
@@ -34,7 +34,7 @@ def login() -> str:
     r = requests.post(url=f"{URL}/public/login/", json={
         "email": ADMIN_EMAIL,
         "password": ADMIN_PASSWORD
-    }, headers=HEADERS, timeout=5)
+    }, headers=HEADERS)
     assert r.status_code == 200, f"Login fallido: {r.content}"
     token = r.json()["token"]
     HEADERS["Authorization"] = f"Bearer {token}"
@@ -50,7 +50,7 @@ def agregar_mesas():
     ]
     print("Agregando mesas...")
     for mesa in mesas:
-        r = requests.post(url=f"{URL}/public/tables/", json=mesa, headers=HEADERS, timeout=5)
+        r = requests.post(url=f"{URL}/public/tables/", json=mesa, headers=HEADERS)
         print(f"  Mesa {mesa['table_number']}: {r.status_code}")
 
 def agregar_menus():
@@ -67,7 +67,7 @@ def agregar_menus():
     ]
     print("Agregando menús...")
     for menu in menus:
-        r = requests.post(url=f"{URL}/admin/menus/", json=menu, headers=HEADERS, timeout=5)
+        r = requests.post(url=f"{URL}/admin/menus/", json=menu, headers=HEADERS)
         print(f"  Menú {menu['name']}: {r.status_code}")
 
 def agregar_usuarios():
@@ -78,7 +78,7 @@ def agregar_usuarios():
     ]
     print("Agregando usuarios...")
     for usuario in usuarios:
-        r = requests.post(url=f"{URL}/public/users/", json=usuario, headers=HEADERS, timeout=5)
+        r = requests.post(url=f"{URL}/public/users/", json=usuario, headers=HEADERS)
         print(f"  Usuario {usuario['name']}: {r.status_code}")
 
 def agregar_reservas_y_resenas():
@@ -94,7 +94,7 @@ def agregar_reservas_y_resenas():
     for datos in usuarios_resenas:
         # Login con el usuario
         headers_usuario = {"Content-Type": "application/json"}
-        r = requests.post(url=f"{URL}/public/login/", json={"email": datos["email"], "password": datos["password"]}, headers=headers_usuario, timeout=5)
+        r = requests.post(url=f"{URL}/public/login/", json={"email": datos["email"], "password": datos["password"]}, headers=headers_usuario)
         if r.status_code != 200:
             print(f"  Login fallido para {datos['email']}: {r.status_code}")
             continue
@@ -106,7 +106,7 @@ def agregar_reservas_y_resenas():
             "table_id": datos["table_id"],
             "fecha": datos["fecha"],
             "hora": datos["hora"]
-        }, headers=headers_usuario, timeout=5)
+        }, headers=headers_usuario)
 
         if r.status_code != 201:
             print(f"  Reserva fallida para {datos['email']}: {r.status_code} {r.content}")
@@ -128,14 +128,14 @@ def agregar_reservas_y_resenas():
             "reservation_id": reserva_id,
             "description": datos["description"],
             "stars": datos["stars"]
-        }, headers=headers_usuario, timeout=5)
+        }, headers=headers_usuario)
         print(f"  Reseña ({datos['stars']}★) para {datos['email']}: {r.status_code}")
 
 def probar_admin_reservaciones():
     print("Probando endpoints admin de reservaciones...")
 
     # Listar todas las reservas
-    r = requests.get(url=f"{URL}/admin/reservations/", headers=HEADERS, timeout=5)
+    r = requests.get(url=f"{URL}/admin/reservations/", headers=HEADERS)
     print(f"  GET /admin/reservations/: {r.status_code}")
     if r.status_code != 200 or not r.json():
         print("  No hay reservas para probar el resto, salteando.")
@@ -145,32 +145,32 @@ def probar_admin_reservaciones():
     print(f"  Usando reserva id={reserva_id} para las pruebas")
 
     # Ver una reserva específica
-    r = requests.get(url=f"{URL}/admin/reservations/{reserva_id}", headers=HEADERS, timeout=5)
+    r = requests.get(url=f"{URL}/admin/reservations/{reserva_id}", headers=HEADERS)
     print(f"  GET /admin/reservations/{reserva_id}: {r.status_code}")
 
     # Cambiar estado a Confirmed
     r = requests.post(url=f"{URL}/admin/reservations/{reserva_id}/estado",
-        json={"status_reservation": "Confirmed"}, headers=HEADERS, timeout=5)
+        json={"status_reservation": "Confirmed"}, headers=HEADERS)
     print(f"  POST estado=Confirmed: {r.status_code} — {r.json()}")
 
     # Cambiar estado a Arrived
     r = requests.post(url=f"{URL}/admin/reservations/{reserva_id}/estado",
-        json={"status_reservation": "Arrived"}, headers=HEADERS, timeout=5)
+        json={"status_reservation": "Arrived"}, headers=HEADERS)
     print(f"  POST estado=Arrived: {r.status_code} — {r.json()}")
 
     # Crear una reserva nueva para probar el DELETE
     headers_usuario = {"Content-Type": "application/json"}
     r = requests.post(url=f"{URL}/public/login/",
         json={"email": "test1@restaurant.com", "password": "pass1234"},
-        headers=headers_usuario, timeout=5)
+        headers=headers_usuario)
     if r.status_code == 200:
         headers_usuario["Authorization"] = f"Bearer {r.json()['token']}"
         r = requests.post(url=f"{URL}/public/reservations/",
             json={"table_id": 4, "fecha": "2026-12-01", "hora": "20"},
-            headers=headers_usuario, timeout=5)
+            headers=headers_usuario)
         if r.status_code == 201:
             nueva_id = r.json()["reserva_id"]
-            r = requests.delete(url=f"{URL}/admin/reservations/{nueva_id}", headers=HEADERS, timeout=5)
+            r = requests.delete(url=f"{URL}/admin/reservations/{nueva_id}", headers=HEADERS)
             print(f"  DELETE /admin/reservations/{nueva_id}: {r.status_code} — {r.json()}")
 
 def main():
