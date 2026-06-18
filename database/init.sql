@@ -1,7 +1,6 @@
 CREATE DATABASE IF NOT EXISTS restaurant;
 USE restaurant;
 
-
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
@@ -27,13 +26,13 @@ CREATE TABLE restaurant_tables (
     table_number INT NOT NULL UNIQUE,
     capacity INT NOT NULL,
     status ENUM ('available', 'occupied', 'reserved'),
-    price INT DEFAULT 0
 );
 
 CREATE TABLE reservations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     table_id INT,
+    people_amount INT,
     reservation_datetime DATETIME,
     status_reservation ENUM ('Pending', 'Confirmed', 'Cancelled', 'Arrived'),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
