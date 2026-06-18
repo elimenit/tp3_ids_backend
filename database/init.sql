@@ -52,22 +52,3 @@ CREATE TABLE reviews (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE CASCADE
 );
-
-CREATE TABLE deliveries (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    address VARCHAR(255) DEFAULT 'addres_example',
-    delivery_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status ENUM ('pending', 'transit', 'delivered', 'cancelled'),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
-CREATE TABLE deliveries_menus (
-    delivery_id INT,
-    menu_id INT,
-    quantity INT DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    qr_code INT DEFAULT 1,
-    FOREIGN KEY (delivery_id) REFERENCES deliveries(id) ON DELETE CASCADE,
-    FOREIGN KEY (menu_id) REFERENCES menus(id) ON DELETE CASCADE
-);  
