@@ -29,7 +29,7 @@
 
 ## 3. Resumen
 
-Se desarrolló un sistema de gestión y venta orientado a la gastronomía para gestionar productos y reservas, que a su vez permite atraer a nuevos clientes a través de un sistema ágil de reservaciones, delivery de productos y reseñas que dan transparencia al servicio del restaurante. 
+Se desarrolló un sistema de gestión y venta orientado a la gastronomía para gestionar productos y reservas, que a su vez permite atraer a nuevos clientes a través de un sistema ágil de reservaciones, productos y reseñas que dan transparencia al servicio del restaurante. 
 
 El sistema fue implementado siguiendo una arquitectura de tres capas (frontend, backend, base de datos) con separación clara entre módulos administrativos y públicos, permitiendo que el local gestione de forma integral sus operaciones desde un panel de control intuitivo.
 
@@ -39,7 +39,7 @@ El sistema fue implementado siguiendo una arquitectura de tres capas (frontend, 
 
 ### 4.1 Contexto y motivación
 
-En el mundo gastronómico, la digitalización es cada vez más importante para mejorar la experiencia del cliente y optimizar la gestión operativa. Los restaurantes necesitan herramientas que les permitan no solo atender clientes presenciales, sino también ofrecer servicios online como reservas, delivery y feedback de clientes. Este proyecto surge como respuesta a esa necesidad: crear una plataforma integral que centralice la administración de un restaurante, desde la gestión del menú hasta el análisis de datos de desempeño.
+En el mundo gastronómico, la digitalización es cada vez más importante para mejorar la experiencia del cliente y optimizar la gestión operativa. Los restaurantes necesitan herramientas que les permitan no solo atender clientes presenciales, sino también ofrecer servicios online como reservas y feedback de clientes. Este proyecto surge como respuesta a esa necesidad: crear una plataforma integral que centralice la administración de un restaurante, desde la gestión del menú hasta el análisis de datos de desempeño.
 
 El equipo eligió este tema porque combina aspectos técnicos complejos (integración de múltiples servicios, autenticación de usuarios, reportes en tiempo real) con un caso de uso real que es fácil de entender y validar. Además, permite aplicar todos los conceptos aprendidos en la materia: Backend REST, Frontend dinámico, Base de datos relacional, control de versiones, metodologías ágiles y buenas prácticas de desarrollo.
 
@@ -52,9 +52,8 @@ Desarrollar una plataforma web integral para la gestión y venta en un restauran
 - Implementar un sistema de autenticación con roles diferenciados (cliente, administrador) que permita acceso seguro a funcionalidades específicas.
 - Crear un catálogo dinámico de menú con información de productos, precios y restricciones alimenticias.
 - Desarrollar un sistema de reservas online que incluya confirmación por mail y QR de verificación.
-- Implementar un servicio de delivery con carrito de compra y seguimiento de pedidos.
 - Permitir que clientes dejen reseñas y calificaciones del servicio.
-- Construir dashboards administrativos que muestren estadísticas y análisis de reservas, delivery y reseñas en diferentes períodos.
+- Construir dashboards administrativos que muestren estadísticas y análisis de reservas y reseñas en diferentes períodos.
 - Aplicar buenas prácticas de programación, versionado en GitHub y metodologías ágiles (Kanban) en el trabajo en equipo.
 - Dockerizar la aplicación para facilitar su deploy y escalabilidad.
 
@@ -62,12 +61,11 @@ Desarrollar una plataforma web integral para la gestión y venta en un restauran
 
 **Incluye:**
 
-- **Frontend público:** información del local, fotos, menú con precios, reseñas de comensales, selección de productos para delivery, flujo de compra y reserva.
+- **Frontend público:** información del local, fotos, menú con precios, reseñas de comensales y reserva.
 - **Reservas:** flujo ágil (día → horario → cantidad de personas → confirmación por mail), generación de QR asociado a la reserva, cancelación desde el mail.
-- **Delivery:** selección de productos, carrito de compra, checkout, confirmación del pedido y seguimiento del estado.
 - **Usuarios y roles:** registro/login con distintos roles (cliente regular, administrador).
-- **Panel administrativo:** ABM de menú (con imágenes y restricciones alimenticias), ABM de reseñas, ABM de servicios extra, gestión de reservas y de delivery, visualización de estadísticas.
-- **Dashboards informativos:** gráficos en tiempo real de reservas, delivery, reseñas y otros indicadores del local, con filtros por rango temporal.
+- **Panel administrativo:** ABM de menú (con imágenes y restricciones alimenticias), ABM de reseñas, ABM de servicios extra, gestión de reservas, visualización de estadísticas.
+- **Dashboards informativos:** gráficos en tiempo real de reservas, reseñas y otros indicadores del local, con filtros por rango temporal.
 - **Integración con servicios externos:** envío de mails de confirmación, generación dinámica de QR.
 - **Dockerización:** proyecto containerizado para fácil despliegue.
 
@@ -112,12 +110,10 @@ La base de datos del sistema (`restaurant`) está estructurada bajo el modelo re
 * **restaurant_tables:** Define la infraestructura física del salón, controlando el número de mesa, su capacidad de comensales y su estado de ocupación actual.
 * **reservations:** Gestiona las reservas de mesas vinculando clientes con mesas específicas, incluyendo el control de asistencia y un token único para validación por QR.
 * **reviews:** Permite a los usuarios calificar y dejar comentarios sobre sus reservaciones, con una restricción que limita la puntuación de 1 a 5 estrellas.
-* **deliveries:** Registra las órdenes de pedido a domicilio asignadas a un usuario, haciendo el seguimiento del estado del envío y la dirección de entrega.
-* **deliveries_menus:** Tabla intermedia que detalla los platos y cantidades incluidos en cada pedido de delivery, incorporando un código de control.
 
 #### 5.3.1 Consideraciones de Integridad y Auditoría
 
-1. **Auditoría Temporal:** Las entidades operativas clave (`users`, `reservations`, `reviews`, `deliveries`, `deliveries_menus`) incluyen de forma nativa el campo `created_at` con marcas de tiempo automatizadas para mantener la trazabilidad histórica.
+1. **Auditoría Temporal:** Las entidades operativas clave (`users`, `reservations`, `reviews`) incluyen de forma nativa el campo `created_at` con marcas de tiempo automatizadas para mantener la trazabilidad histórica.
 2. **Ciclo de Vida por Estados:** El modelo aprovecha tipos de datos enumerados (`ENUM`) específicos para reflejar con precisión el estado real del negocio en usuarios, mesas, reservas y envíos.
 
 #### 5.3.2 Diagrama Entidad-Relación
@@ -143,7 +139,6 @@ El frontend expone rutas HTML tradicionales para renderizar las páginas; el bac
 
 - **Menú dinámico:** catálogo de productos con filtros por categoría y restricciones alimenticias.
 - **Reservas online:** selección de fecha, horario, mesa y cantidad de comensales; confirmación por email con QR.
-- **Delivery:** carrito de compra, checkout, confirmación de pedido.
 - **Reseñas y calificaciones:** usuarios pueden dejar feedback post-visita.
 - **Dashboards administrativos:** gráficos e indicadores por período (diario, mensual, anual).
 - **ABM de entidades:** paneles para gestionar productos, usuarios, reservas, reseñas.
@@ -200,16 +195,6 @@ El proceso de reserva es ágil y orientado a la experiencia del usuario. Un clie
 - Marcar reservas como completadas manualmente.
 - No se pueden modificar reservas pasadas (no tiene sentido hacerlo, se pierde información)
 
-### 6.3 Delivery
-
-El sistema de delivery permite que clientes pidan productos para llevar o entregar en su domicilio. El flujo es similar al de un e-commerce tradicional:
-
-1. El cliente selecciona **productos del menú** y los agrega al **carrito**.
-2. Especifica si es **retiro en el local** o **entrega a domicilio** (con dirección).
-3. Realiza el **checkout** (en versión básica sin pasarela de pago).
-4. Recibe una **confirmación por email** con el número de pedido.
-5. Puede **ver el estado del pedido** en tiempo real (preparando, listo, en camino, entregado).
-
 ### 6.4 Reseñas
 
 Las reseñas son testimonios que dejan los clientes después de comer en el restaurante. Funcionan como un sistema de feedback y transparencia:
@@ -235,7 +220,7 @@ Las reseñas son testimonios que dejan los clientes después de comer en el rest
 
 El apartado de dashboards está presente únicamente para los usuarios administradores, y cuenta con un panel en el cual pueden visualizar las estadísticas de cada uno de los servicios brindados por la página web.
 
-La idea es que cada vez que el administrador seleccione una opción (delivery, reseñas o reservas) y un rango temporal, se carguen los datos de manera inicial utilizando Jinja, y luego se modifiquen los gráficos de manera dinámica en base a las agrupaciones temporales seleccionados por el usuario (si aplica para el gráfico, por ejemplo en líneas).
+La idea es que cada vez que el administrador seleccione una opción (reseñas o reservas) y un rango temporal, se carguen los datos de manera inicial utilizando Jinja, y luego se modifiquen los gráficos de manera dinámica en base a las agrupaciones temporales seleccionados por el usuario (si aplica para el gráfico, por ejemplo en líneas).
 
 #### 6.5.1 Agrupaciones temporales
 - Diario
@@ -249,12 +234,6 @@ La idea es que cada vez que el administrador seleccione una opción (delivery, r
 2. **Estado de reservas:** gráfico de torta mostrando distribución entre pendientes, confirmadas y completadas.
 3. **Ocupación por franja horaria:** heatmap mostrando qué horarios tienen más demanda.
 4. **Reservas por capacidad de mesa:** gráfico de barras mostrando cuántas reservas usa cada tamaño de mesa.
-
-**Delivery**
-1. **Ingresos por período:** gráfico de líneas mostrando ingresos acumulados en el tiempo.
-2. **Productos más vendidos:** gráfico de barras horizontales con los top 10 productos.
-3. **Pedidos por franja horaria:** heatmap similar al de reservas, mostrando patrones de compra.
-4. **Pedidos por estado:** gráfico de torta mostrando cuántos pedidos están en cada estado.
 
 **Reseñas**
 1. **Distribución de estrellas:** gráfico de barras mostrando cuántas reseñas de 1, 2, 3, 4 y 5 estrellas hay.
@@ -280,7 +259,7 @@ Para el manejo de usuario se optó por el generado de tokens temporales, los cua
 5. **Validación:** el backend decodifica el token, extrae el ID del usuario y lo valida. Si es válido, procesa la solicitud. Si no, rechaza con error 401.
 
 #### Roles de usuario
-- **Cliente:** acceso a menú, reservas, delivery, reseñas; puede visualizar su historial de pedidos y administrar su usuario.
+- **Cliente:** acceso a menú, reservas, reseñas; puede visualizar su historial de pedidos y administrar su usuario.
 - **Administrador:** acceso a dashboards, paneles ABM, gestión de todas las entidades (productos, usuarios, reservas, etc.).
 
 #### Seguridad
