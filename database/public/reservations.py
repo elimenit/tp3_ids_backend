@@ -34,6 +34,7 @@ def db_get_reservation_by_id(reservation_id) -> dict | None:
             r.reservation_datetime,
             r.status_reservation,
             u.email AS user_email,
+            u.name AS user_name,
             r.table_id as table_number,
             r.people_amount as people_amount
         FROM reservations r
@@ -91,7 +92,7 @@ def db_get_tables_availability(fecha, hora) -> list[dict]:
     2. Mesas ocupadas en ese horario
     """
     all_tables = _execute_query("""
-        SELECT id, table_number, capacity, price, status
+        SELECT id, table_number, capacity, status
         FROM restaurant_tables
         ORDER BY table_number
     """)

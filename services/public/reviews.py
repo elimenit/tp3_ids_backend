@@ -5,18 +5,18 @@ def validation_limit_offset(limit: int, offset: int) -> bool:
             is_valid = True
     return is_valid
 
-def validation_create_review(reservation_id: int, description: str, stars: int) -> bool:
+def validation_create_review(reservation_id, description: str, stars) -> bool:
     is_valid: bool = False
     if reservation_id is not None and description is not None and stars is not None:
         if isinstance(description, str) and description.strip() != '':
-            if isinstance(stars, int) and 1 <= stars <= 5:
+            if 1 <= int(stars) <= 5:
                 is_valid = True
     return is_valid
 
-def validation_update_review(description: str, stars: int) -> bool:
+def validation_update_review(description: str, stars) -> bool:
     is_valid: bool = False
     if description is not None and stars is not None:
         if isinstance(description, str) and description.strip() != '':
-            if isinstance(stars, int) and 1 <= stars <= 5:
+            if 1 <= int(stars) <= 5:
                 is_valid = True
     return is_valid
