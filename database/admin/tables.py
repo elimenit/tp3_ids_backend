@@ -1,7 +1,9 @@
-from database.helpers import _execute_query, _execute_update_query, build_update_query
+from database.helpers import _execute_query, _execute_update_query, build_update_query, _count_rows
 
-def db_get_all_tables(limit: int, offset: int) -> list[dict]:
-    return _execute_query('SELECT id, capacity, status FROM restaurant_tables ORDER BY id LIMIT %s OFFSET %s', (limit, offset))
+def db_get_all_tables(limit: int, offset: int) -> tuple[list[dict], int]:
+    tables = _execute_query('SELECT id, capacity, status FROM restaurant_tables ORDER BY id LIMIT %s OFFSET %s', (limit, offset))
+    count = _count_rows('restaurant_tables')
+    return tables, count
 
 def db_deactivate_table(table_id: int) -> int:
     return _execute_update_query('UPDATE restaurant_tables SET status = "inactive" WHERE id = %s', (table_id,))
