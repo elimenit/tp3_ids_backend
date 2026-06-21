@@ -21,17 +21,16 @@ def create():
     table_number = body.get('table_number', None)
     capacity = body.get('capacity', None)
     status = body.get('status', None)
-    price = body.get('price', None)
 
-    if not capacity and not status and not not price and not table_number:
+    if not capacity or not status or not table_number:
         return error_response(
             "Campo Vacios",
             "Algun Campo esta Vacio",
             400
         )
-    
+
     try:
-        db_create_table(table_number, capacity, status, price)
+        db_create_table(table_number, capacity, status)
     except Exception as e:
         return error_response(
             "No se registro la mesa", f"exception: {e}",

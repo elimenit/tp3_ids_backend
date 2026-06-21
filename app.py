@@ -11,7 +11,6 @@ from flask_jwt_extended import JWTManager
 from database.db import build_initial_database
 # Blueprints
 from routers.login import public_bp_login
-from routers.public.deliveries import public_bp_delivery
 from routers.public.menus import public_bp_menu
 from routers.public.reservations import public_bp_reservations
 from routers.public.users import public_bp_users
@@ -36,7 +35,6 @@ def create_app()-> Flask:
     # 3. Configurar JWT para autenticación
     jwt = JWTManager(app)
     
-    app.register_blueprint(public_bp_delivery, url_prefix="/public/deliveries")
     app.register_blueprint(public_bp_login, url_prefix="/public/login")
     app.register_blueprint(public_bp_tables, url_prefix="/public/tables")
     app.register_blueprint(public_bp_menu, url_prefix="/public/menus")

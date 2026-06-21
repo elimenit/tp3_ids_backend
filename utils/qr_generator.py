@@ -1,9 +1,7 @@
 import qrcode
 import os
  
-# URL del frontend, idealmente en .env
-FRONTEND_URL = "http://localhost:5001"
- 
+FRONTEND_URL = "http://localhost:10000"  
  
 def generar_qr(reserva_id, qr_token):
     """

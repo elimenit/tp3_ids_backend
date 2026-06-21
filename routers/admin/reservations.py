@@ -1,90 +1,62 @@
-"""Administracion de Reservaciones.
-"""
-from flask import Blueprint, request
-from flask_jwt_extended import jwt_required
+from utils.auth import is_admin
 from utils.error import error_response
 from services.public.reservations import (
     service_get_all_reservations,
     service_get_reservation,
-    service_update_status,
+    update_reservation
 )
+
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 
 adm_bp_reservations = Blueprint("admin_reservations", __name__)
 
-
-@adm_bp_reservations.route(rule="/", methods=["GET"])
+@adm_bp_reservations.get(rule="/")
 @jwt_required()
 def show():
-    """Obtiene todas las reservaciones.\n
-    """
-    reservas = service_get_all_reservations()
+    """Obtiene una lista de todas las reservaciones con paginación."""
+    if not is_admin():
+        return error_response('Error al obtener las reservaciones', 'Acceso no autorizado',status_code=403)
+        
+    limit = request.args.get('_limit', 10, type=int)
+    offset = request.args.get('_offset', 0, type=int)
 
-    if reservas is None:
-        return error_response(
-            "Error al obtener reservaciones",
-            "Base de datos no disponible",
-            500
-        )
+    try:
+        reservations, reservations_count = service_get_all_reservations(limit, offset)
+        return jsonify({
+            "data": reservations,
+            "count": reservations_count
+        }), 200
+    except (ValueError, Exception) as e:
+        return error_response('Error al obtener las reservaciones', str(e), 400)
 
-    return reservas
 
-
-@adm_bp_reservations.route(rule="/<int:id>", methods=["GET"])
+@adm_bp_reservations.get(rule="/<int:id>")
 @jwt_required()
 def get_reservation(id: int):
-    """Obtiene una reservacion por ID.\n
-    """
-    reserva = service_get_reservation(id)
+    """Obtiene el detalle de una reservación específica."""
+    if not is_admin():
+        return jsonify({"error": "Acceso no autorizado"}), 403
 
-    if reserva is None:
-        return error_response(
-            f"id no existente: {id}",
-            "Reservacion no encontrada",
-            404
-        )
+    try:
+        reserva = service_get_reservation(id)
+        if reserva is None:
+            return error_response('Error al obtener la reservación', f"id no existente: {id}", 404)
+        
+        return jsonify(reserva), 200
+    except (ValueError, Exception) as e:
+        return error_response('Error al procesar la solicitud', str(e), 400)
 
-    return reserva
-
-
-@adm_bp_reservations.route(rule="/<int:id>/estado", methods=["POST"])
+@adm_bp_reservations.put(rule="/<int:res_id>")
 @jwt_required()
-def update_status(id: int):
-    """Actualiza el estado de una reservacion.\n
-    """
-    datos = request.get_json()
-
-    if datos is None:
-        return error_response(
-            "Se esperaba JSON en el body",
-            "Formato inválido",
-            400
-        )
-
-    nuevo_estado = datos.get("status_reservation")
-
-    if nuevo_estado is None:
-        return error_response(
-            "Falta status_reservation",
-            "Campo obligatorio",
-            400
-        )
-
-    ok, mensaje = service_update_status(id, nuevo_estado)
-
-    if not ok:
-        return error_response(mensaje, "", 400)
-
-    return {"mensaje": mensaje}
-
-
-@adm_bp_reservations.route(rule="/<int:id>", methods=["DELETE"])
-@jwt_required()
-def cancel(id: int):
-    """Cancela una reservacion por ID.\n
-    """
-    ok, mensaje = service_update_status(id, "Cancelled")
-
-    if not ok:
-        return error_response(mensaje, "", 400)
-
-    return {"mensaje": mensaje}
+def update(res_id: int):
+    if not is_admin():
+        return jsonify({"error": "Acceso no autorizado"}), 403
+    data = request.get_json()
+    try:
+        res, code = update_reservation(res_id, data)
+    except (ValueError, Exception) as e:
+        return error_response('Error durante la actualizacion.', str(e), 400)
+    if code != 204:
+        return res, code
+    return '', 204

@@ -1,24 +1,32 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from database.admin.menus import (
-    db_list_menus, db_get_menu, db_create_menu, db_update_menu, db_delete_menu
+    db_get_menu, db_create_menu, db_update_menu, db_delete_menu
 )
-from services.admin.menus import validation_create_menu, validation_update_menu
+from services.admin.menus import validation_create_menu, validation_update_menu, get_all_menus
 from utils.error import error_response
 from utils.auth import is_admin
 
 adm_bp_menus = Blueprint("admin_menus", __name__)
 
-@adm_bp_menus.route("/", methods=["GET"])
+@adm_bp_menus.get(rule="/")
 @jwt_required()
-def list_menus():
+def show():
+    """Obtiene el menú con paginación."""
     if not is_admin():
-        return error_response("Sin permisos", "Solo administradores pueden acceder", 403)
+        return error_response('Error al acceder', 'Acceso no autorizado',status_code=403)
+
+    limit = request.args.get('_limit', 10, type=int)
+    offset = request.args.get('_offset', 0, type=int)
+
     try:
-        menus = db_list_menus()
-    except Exception as e:
-        return error_response("Error al obtener menús", f"Error: {e}", 500)
-    return jsonify(menus), 200
+        products, prod_count = get_all_menus(limit, offset)
+        return jsonify({
+            "data": products,
+            "count": prod_count
+        }), 200
+    except (ValueError, Exception) as e:
+        return error_response('Error al obtener el menú', str(e), 400)
 
 @adm_bp_menus.route("/<int:menu_id>", methods=["GET"])
 @jwt_required()
@@ -49,11 +57,14 @@ def create_menu():
     category = body.get("category")
     name = body.get("name")
     description = body.get("description")
-    price = body.get("price")
+    try:
+        price = float(body.get("price"))
+    except TypeError:
+        return error_response('Campo inválido', f'El campo `precio` debe tener un número positivo.', 400)
     image_url = body.get("image_url")
 
     if not validation_create_menu(category, name, description, price):
-        return error_response("Campos inválidos", "Revisá los campos. La categoría debe ser una de: drinks, burgers, pasta, soup", 400)
+        return error_response("Campos inválidos", "Revisá los campos enviados", 400)
 
     try:
         new_id = db_create_menu(category, name, description, price, image_url)
@@ -76,12 +87,15 @@ def update_menu(menu_id: int):
     category = body.get("category")
     name = body.get("name")
     description = body.get("description")
-    price = body.get("price")
-    available = body.get("available")
+    try:
+        price = float(body.get("price"))
+    except TypeError:
+        return error_response('Campo inválido', f'El campo `precio` debe tener un número positivo.', 400)
+    available = body.get("available") == 'on'
     image_url = body.get("image_url")
 
     if not validation_update_menu(category, name, description, price, available):
-        return error_response("Campos inválidos", "Revisá los campos. La categoría debe ser una de: drinks, burgers, pasta, soup", 400)
+        return error_response("Campos inválidos", "Revisá los campos enviados", 400)
 
     try:
         updated = db_update_menu(menu_id, category, name, description, price, available, image_url)

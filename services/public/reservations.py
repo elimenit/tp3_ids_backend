@@ -1,12 +1,7 @@
-# =============================================================================
-# services/public/reservations.py
-# Capa de servicios para reservaciones.
-# Unica responsabilidad: logica de negocio y validaciones.
-# No sabe nada de HTTP. No toca la BD directamente.
-# =============================================================================
-
 import secrets
 
+from database.public.users import db_get_user
+from database.public.tables import db_check_table_capacity, db_table_exists
 from database.public.reservations import (
     db_get_all_reservations,
     db_get_reservation_by_id,
@@ -15,20 +10,106 @@ from database.public.reservations import (
     db_get_all_tables,
     db_get_tables_availability,
     db_create_reservation,
-    db_update_reservation_status,
+    db_update_reservation,
+    db_check_previous_amount,
+    db_check_new_amount,
+    db_check_reservation_date
 )
+
+from utils.error import error_response
 from utils.qr_generator import generar_qr
 from utils.email_sender import enviar_email_reserva
+from utils.validators import validar_limit_offset, is_future_date
+from utils.helpers import _count_rows
 
-# Estados validos segun el ENUM del schema
-# Solo estos cuatro valores son aceptados
+from flask import Response
+
 VALID_STATUSES = ['Pending', 'Confirmed', 'Cancelled', 'Arrived']
 
+def validate_table_capacity(table_id: int | None, amount: int | None, reservation_id: int) -> bool:
+    """
+    Valida las 3 posibilidades de cambio:
+    - Cambio de mesa y cambio de gente simultáneo.
+    - Cambio de mesa sola (mantiene comensales actuales).
+    - Cambio de gente sola (mantiene mesa actual).
+    """
+    if table_id is not None and amount is not None:
+        return db_check_table_capacity(table_id, amount)
+    if table_id is not None:
+        return db_check_previous_amount(reservation_id, table_id)
+    if amount is not None:
+        return db_check_new_amount(reservation_id, amount)
+    return True
 
-def service_get_all_reservations():
-    """Devuelve todas las reservaciones. Uso: panel admin."""
-    return db_get_all_reservations()
+def service_get_all_reservations(limit: int, offset: int) -> tuple[list[dict], int]:
+    """Devuelve todas las reservaciones y la cantidad total de registros. Uso: panel admin."""
+    if not validar_limit_offset(limit, offset):
+        raise ValueError("Error en la selección de números para el paginado.")
+    return db_get_all_reservations(limit, offset), _count_rows('reservations')
 
+def update_reservation(reservation_id: int, updates: dict) -> tuple[Response | str, int]:
+    """
+    Espera un ID de reserva y un diccionario de forma {'<nombre_de_columna>': <valor>}. 
+    Esto a excepción de las fechas que son ingresadas como 'fecha' y 'hora'.
+
+    Valida:
+    - Que hayan cambios
+    - Que la reserva a modificar es futura
+    - Si se ingresó una fecha y la misma es futura (no es posible actualizar reservas pasadas)
+    - Formato de hora
+    - Existencia de mesa
+    - Capacidad (más detalle en la función validate_table_capacity)
+    - Existencia de usuario
+    - Estado de reserva ingresado 
+    """
+    if not updates:
+        return error_response("Error en la actualización", "No hay campos para actualizar.", 400)
+    print(updates)
+
+    if not db_check_reservation_date(reservation_id):
+        return error_response('Error', 'La reserva a modificar es pasada o no existe. Debe editar reservas futuras.', 400)
+
+    res_date = updates.get('fecha')
+    hour = updates.get('hora')
+    if res_date and hour:
+        try:
+            hour = int(hour)
+        except TypeError:
+            return error_response('Error en la hora', 'Se debe ingresar una hora numérica', 400)
+        if not is_future_date(res_date):
+            return error_response('Error en la fecha', 'Debe ingresar una fecha futura.', 400)
+        for clave in ['fecha', 'hora']:
+            updates.pop(clave, None)
+        updates['reservation_datetime'] = f"{res_date} {hour:02d}:00:00"
+
+    table_id = updates.get('table_id')
+    amount = updates.get('people_amount')
+    if table_id:
+        print('chequeando mesa... \n')
+        if not db_table_exists(table_id):
+            return error_response('Mesa no encontrada', f'La mesa de número [{table_id}] no ha sido encontrada.', 404)
+
+    if table_id or amount:
+        if not validate_table_capacity(table_id, amount, reservation_id):
+            return error_response('Capacidad excedida', 'La cantidad de comensales supera la capacidad de la mesa', 400)
+
+    user_email = updates.get('user_email')
+    if user_email:
+        user = db_get_user(email=user_email)
+        if not user:
+            return error_response('Error en el email', f'No se ha encontrado usuario con el email: {user_email}', 404)
+        updates.pop('user_email', None)
+        updates['user_id'] = user['id']
+
+    status = updates.get('status_reservation')
+    if status: 
+        if status not in VALID_STATUSES:
+            return error_response('Error en el estado', 'Se ha ingresado un estado no válido.', 400)
+    
+    processed_updates = {k: v for k, v in updates.items() if v is not None}
+    print(processed_updates)
+    db_update_reservation(reservation_id, processed_updates)
+    return '', 204
 
 def service_get_my_reservations(user_id):
     """Devuelve solo las reservaciones del usuario logueado."""
@@ -52,11 +133,8 @@ def service_get_tables(fecha, hora):
     """
 
     if fecha and hora is not None:
-        # Convertimos hora a entero porque del formulario llega como string
-        # '20' (string) → 20 (entero) para que coincida con HOUR() en MySQL
         tables = db_get_tables_availability(fecha, int(hora))
     else:
-        # Sin fecha y hora traemos todas sin filtro
         tables = db_get_all_tables()
 
     if tables is None:
@@ -83,45 +161,33 @@ def service_create_reservation(datos, user_id):
     Devuelve (None, diccionario_con_error) si algo fallo
     """
 
-    # ── Paso 1: validar campos obligatorios ───────────────────────
     campos_necesarios = ['table_id', 'fecha', 'hora']
 
     for campo in campos_necesarios:
         if not datos.get(campo):
-            # datos.get(campo) devuelve None si el campo no existe
             return None, {"tipo": "error", "mensaje": f"Falta el campo: {campo}"}
 
     fecha   = datos.get('fecha')
     hora    = datos.get('hora')
     mesa_id = datos.get('table_id')
 
-    # ── Paso 2: traer todas las mesas con disponibilidad ──────────
     tables, error = service_get_tables(fecha, hora)
 
     if error:
         return None, {"tipo": "error", "mensaje": error}
 
-    # ── Paso 3: buscar la mesa que eligio el usuario ──────────────
-    # Recorremos la lista buscando la mesa con el ID correcto
     mesa_elegida = None
 
     for mesa in tables:
         if str(mesa['id']) == str(mesa_id):
-            # Convertimos los dos a string para comparar
-            # mesa_id puede llegar como '3' (string del formulario)
-            # mesa['id'] puede ser 3 (entero de la BD)
             mesa_elegida = mesa
             break
-        # break sale del for cuando encontro la mesa
 
-    # Si no encontro ninguna mesa con ese ID
     if mesa_elegida is None:
         return None, {"tipo": "error", "mensaje": "La mesa no existe"}
 
-    # ── Paso 4: verificar que la mesa este disponible ─────────────
     if mesa_elegida['estado'] != 'available':
 
-        # Armar lista de mesas libres para mostrarselas al usuario
         mesas_libres = []
         for mesa in tables:
             if mesa['estado'] == 'available':
@@ -133,16 +199,9 @@ def service_create_reservation(datos, user_id):
             "mesas_libres": mesas_libres
         }
 
-    # ── Paso 5: generar token unico ───────────────────────────────
-    # secrets.token_urlsafe(16) genera algo como 'xK9mP2nQr7vL4wZj'
-    # Es imposible de adivinar, por eso es seguro para el link de cancelar
     qr_token = secrets.token_urlsafe(16)
-
-    # Armamos el datetime completo para guardar en la BD
-    # :02d formatea el numero con dos digitos (9 → 09, 20 → 20)
     reservation_datetime = f"{fecha} {int(hora):02d}:00:00"
 
-    # ── Paso 6: guardar en la BD ──────────────────────────────────
     reserva_id = db_create_reservation(
         user_id,
         mesa_id,
@@ -153,12 +212,8 @@ def service_create_reservation(datos, user_id):
     if reserva_id is None:
         return None, {"tipo": "error", "mensaje": "Error al guardar la reservacion"}
 
-    # ── Paso 7: generar QR ────────────────────────────────────────
     qr_path = generar_qr(reserva_id, qr_token)
 
-    # ── Paso 8: enviar email ──────────────────────────────────────
-    # try/except porque si el email falla la reservacion igual existe
-    # no queremos deshacer todo por un problema de email
     try:
         reserva = db_get_reservation_by_id(reserva_id)
         enviar_email_reserva(
@@ -170,7 +225,6 @@ def service_create_reservation(datos, user_id):
             qr_token     = qr_token
         )
     except Exception as error_email:
-        # Mostramos el error pero no frenamos el flujo
         print(f"Advertencia: el email no se envio. Motivo: {error_email}")
 
     return reserva_id, None
@@ -205,21 +259,3 @@ def service_cancel_by_token(token):
         return True, "Reservacion cancelada exitosamente"
     else:
         return False, "Error al cancelar la reservacion"
-
-
-def service_update_status(reservation_id, new_status):
-    """
-    Cambia el estado desde el panel admin.
-    Valida que el nuevo estado sea uno de los permitidos por el ENUM.
-    """
-
-    # Verificar que el estado pedido existe en nuestra lista
-    if new_status not in VALID_STATUSES:
-        return False, f"Estado invalido. Debe ser uno de: {VALID_STATUSES}"
-
-    ok = db_update_reservation_status(reservation_id, new_status)
-
-    if ok:
-        return True, "Estado actualizado correctamente"
-    else:
-        return False, "Reservacion no encontrada"

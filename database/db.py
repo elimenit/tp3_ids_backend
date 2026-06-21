@@ -26,7 +26,6 @@ def build_initial_database() -> None:
         print("*** Inizializando la Base de datos! ***")
         # 1. Conexión inicial (sin base de datos específica todavía)
         print("Esperemos a que mysql levante...")
-
         conn = None
         i = 0
         is_run_mysql: bool = False
