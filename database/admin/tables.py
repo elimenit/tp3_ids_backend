@@ -1,14 +1,22 @@
-from database.helpers import _execute_query, _execute_update_query
-from database.db import get_connection
+from database.helpers import _execute_query, _execute_update_query, build_update_query
 
 def db_get_all_tables(limit: int, offset: int) -> list[dict]:
     return _execute_query('SELECT id, capacity, status FROM restaurant_tables ORDER BY id LIMIT %s OFFSET %s', (limit, offset))
 
+def db_deactivate_table(table_id: int) -> int:
+    return _execute_update_query('UPDATE restaurant_tables SET status = "inactive" WHERE id = %s', (table_id,))
+
+def db_update_table(table_id: int, updates: dict) -> int:
+    """Actualiza los datos de una mesa. Recibe un diccionario con los campos a actualizar."""
+    allowed_fields = {'capacity', 'status'}
+    query, values = build_update_query('restaurant_tables', allowed_fields, updates)
+    return _execute_update_query(query, values + (table_id,))
+
 def get_table_by_id(table_id: int) -> dict:
     return _execute_query('SELECT id, capacity, status FROM restaurant_tables WHERE id = %s', (table_id,))[0]
 
-def db_create_table(capacity: int, status: str) -> None:
-    ok = _execute_update_query('INSERT INTO restaurant_tables (capacity, status) VALUES (%s, %s)', (capacity, status))
+def db_create_table(capacity: int) -> None:
+    ok = _execute_update_query('INSERT INTO restaurant_tables (capacity, status) VALUES (%s, "active")', (capacity,))
     if not ok:
         raise Exception("No se pudo crear la mesa")
 

@@ -11,10 +11,9 @@ adm_bp_users = Blueprint("admin_users", __name__)
 @jwt_required()
 def show():
     """Obtiene una lista de Usuarios."""
-    print('asdasdasd')
     if not is_admin():
-        return jsonify({"error": "Acceso no autorizado"}), 403
-    
+        return error_response("Acceso no autorizado", "No tienes permisos para realizar esta acción", 403)
+
     limit = request.args.get('_limit', 10, type=int)
     offset = request.args.get('_offset', 0, type=int)
     users, users_count = get_all_users(limit, offset)
@@ -28,8 +27,8 @@ def show():
 def create():
     """Crea un nuevo usuario."""
     if not is_admin():
-        return jsonify({"error": "Acceso no autorizado"}), 403
-    
+        return error_response("Acceso no autorizado", "No tienes permisos para realizar esta acción", 403)
+
     data = request.get_json()
 
     try:
@@ -39,7 +38,7 @@ def create():
         category = data.get("category", "normal")
 
         if not name or not email or not password:
-            error_response('Error durante la creación de usuario', 'Se deben proveer nombre, email, constraseña y categoría.', 400)
+            return error_response('Error durante la creación de usuario', 'Se deben proveer nombre, email, constraseña y categoría.', 400)
 
         user = create_user(name, email, password, category)
         return jsonify(user), 201
@@ -53,7 +52,7 @@ def create():
 def update(user_id: int):
     """Actualiza los datos de un usuario."""
     if not is_admin():
-        return jsonify({"error": "Acceso no autorizado"}), 403
+        return error_response("Acceso no autorizado", "No tienes permisos para realizar esta acción", 403)
 
     data = request.get_json()
 
@@ -70,7 +69,7 @@ def update(user_id: int):
 def delete(user_id: int):
     """Alterna el estado del usuario entre activo e inactivo."""
     if not is_admin():
-        return jsonify({"error": "Acceso no autorizado"}), 403
+        return error_response("Acceso no autorizado", "No tienes permisos para realizar esta acción", 403)
 
     try:
         new_status = toggle_user_status(user_id)

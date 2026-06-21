@@ -6,7 +6,6 @@ from services.public.users import login_user
 
 public_bp_login = Blueprint("public_login", __name__)
 
-
 @public_bp_login.route("/", methods=['POST'])
 def login():
     data = request.get_json()
