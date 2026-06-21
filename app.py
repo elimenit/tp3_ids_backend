@@ -21,13 +21,15 @@ def create_app()-> Flask:
     from routers.public.reservations import public_bp_reservations
     from routers.public.users import public_bp_users
     from routers.public.reviews import public_bp_reviews
+    from routers.public.tables import public_bp_tables
     from routers.admin.tables import admin_bp_tables
     from routers.admin.users import adm_bp_users
     from routers.admin.menus import adm_bp_menus
     from routers.admin.dashboards import adm_bp_dashboards
     from routers.admin.reservations import adm_bp_reservations
     
-    app.register_blueprint(public_bp_login, url_prefix="/public/login")
+    app.register_blueprint(public_bp_login, url_prefix="/auth")
+    app.register_blueprint(public_bp_tables, url_prefix="/public/tables")
     app.register_blueprint(admin_bp_tables, url_prefix="/admin/tables")
     app.register_blueprint(public_bp_menu, url_prefix="/public/menus")
     app.register_blueprint(public_bp_reservations, url_prefix="/public/reservations")

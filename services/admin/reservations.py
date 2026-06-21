@@ -32,6 +32,7 @@ def update_reservation(reservation_id: int, updates: dict) -> tuple[Response | s
     - Existencia de usuario
     - Estado de reserva ingresado 
     """
+    print(f"Actualizando reserva {reservation_id} con los siguientes cambios: {updates}")
     if not updates:
         return error_response("Error en la actualización", "No hay campos para actualizar.", 400)
 

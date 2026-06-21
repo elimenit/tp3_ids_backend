@@ -52,7 +52,7 @@ def create():
     datos = request.get_json()
     if not datos:
         return error_response('Error en los datos', 'No se recibieron datos en formato JSON', 400)
-
+    print(datos)
     res, code = service_create_reservation(datos, user_id)
     if res:
         return res, code

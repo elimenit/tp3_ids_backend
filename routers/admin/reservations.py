@@ -33,7 +33,7 @@ def show():
 @jwt_required()
 def update(res_id: int):
     if not is_admin():
-        return jsonify({"error": "Acceso no autorizado"}), 403
+        return error_response("Acceso no autorizado", "No tienes permisos para realizar esta acción", 403)
     data = request.get_json()
     try:
         res, code = update_reservation(res_id, data)

@@ -35,7 +35,7 @@ def promover_admin():
     print("  Admin promovido a categoría 'admin'")
 
 def login() -> str:
-    r = requests.post(url=f"{URL}/public/login/", json={
+    r = requests.post(url=f"{URL}/auth/", json={
         "email": ADMIN_EMAIL,
         "password": ADMIN_PASSWORD
     }, headers=HEADERS)
@@ -96,7 +96,7 @@ def agregar_reservas_y_resenas():
 
     for datos in usuarios_resenas:
         headers_usuario = {"Content-Type": "application/json"}
-        r = requests.post(url=f"{URL}/public/login/", json={"email": datos["email"], "password": datos["password"]}, headers=headers_usuario)
+        r = requests.post(url=f"{URL}/login/", json={"email": datos["email"], "password": datos["password"]}, headers=headers_usuario)
         if r.status_code != 200:
             print(f"  Login fallido para {datos['email']}: {r.status_code}")
             continue
@@ -153,7 +153,7 @@ def probar_admin_reservaciones():
     print(f"  POST estado=Arrived: {r.status_code} — {r.json()}")
 
     headers_usuario = {"Content-Type": "application/json"}
-    r = requests.post(url=f"{URL}/public/login/", json={"email": "test1@restaurant.com", "password": "pass1234"}, headers=headers_usuario)
+    r = requests.post(url=f"{URL}/login/", json={"email": "test1@restaurant.com", "password": "pass1234"}, headers=headers_usuario)
     if r.status_code == 200:
         headers_usuario["Authorization"] = f"Bearer {r.json()['token']}"
         r = requests.post(url=f"{URL}/public/reservations/", json={"table_id": 4, "fecha": "2026-12-01", "hora": "20"}, headers=headers_usuario)
