@@ -1,8 +1,7 @@
 from utils.auth import is_admin
 from utils.error import error_response
-from services.public.reservations import (
+from services.admin.reservations import (
     service_get_all_reservations,
-    service_get_reservation,
     update_reservation
 )
 
@@ -29,23 +28,6 @@ def show():
         }), 200
     except (ValueError, Exception) as e:
         return error_response('Error al obtener las reservaciones', str(e), 400)
-
-
-@adm_bp_reservations.get(rule="/<int:id>")
-@jwt_required()
-def get_reservation(id: int):
-    """Obtiene el detalle de una reservación específica."""
-    if not is_admin():
-        return jsonify({"error": "Acceso no autorizado"}), 403
-
-    try:
-        reserva = service_get_reservation(id)
-        if reserva is None:
-            return error_response('Error al obtener la reservación', f"id no existente: {id}", 404)
-        
-        return jsonify(reserva), 200
-    except (ValueError, Exception) as e:
-        return error_response('Error al procesar la solicitud', str(e), 400)
 
 @adm_bp_reservations.put(rule="/<int:res_id>")
 @jwt_required()

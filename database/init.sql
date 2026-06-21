@@ -23,9 +23,8 @@ CREATE TABLE menus (
 
 CREATE TABLE restaurant_tables (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    table_number INT NOT NULL UNIQUE,
     capacity INT NOT NULL,
-    status ENUM ('available', 'occupied', 'reserved'),
+    status ENUM ('active', 'inactive') DEFAULT 'active'
 );
 
 CREATE TABLE reservations (

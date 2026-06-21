@@ -1,6 +1,11 @@
+import os
 import requests
+from dotenv import load_dotenv
+from database.db import get_connection
 
-URL = "http://localhost:5000"
+load_dotenv()
+
+URL = os.getenv("API_URL")
 HEADERS = {
     "Content-Type": "application/json",
     "User-Agent": "cargar_datos/1.0"
@@ -21,14 +26,13 @@ def registrar_admin():
         print(f"  Admin ya existe o error: {r.status_code}")
 
 def promover_admin():
-    from database.db import get_connection
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE users SET category = 'admin' WHERE email = %s", (ADMIN_EMAIL,))
     conn.commit()
     cursor.close()
     conn.close()
-    print("  Admin promovido a categoria 'admin'")
+    print("  Admin promovido a categoría 'admin'")
 
 def login() -> str:
     r = requests.post(url=f"{URL}/public/login/", json={
@@ -43,14 +47,14 @@ def login() -> str:
 
 def agregar_mesas():
     mesas = [
-        {"table_number": 1, "capacity": 4, "status": "available", "price": 0},
-        {"table_number": 2, "capacity": 4, "status": "available", "price": 0},
-        {"table_number": 3, "capacity": 6, "status": "available", "price": 10},
-        {"table_number": 4, "capacity": 10, "status": "available", "price": 100},
+        {"table_number": 1, "capacity": 4, "status": "active"},
+        {"table_number": 2, "capacity": 4, "status": "active"},
+        {"table_number": 3, "capacity": 6, "status": "active"},
+        {"table_number": 4, "capacity": 10, "status": "active"}
     ]
     print("Agregando mesas...")
     for mesa in mesas:
-        r = requests.post(url=f"{URL}/public/tables/", json=mesa, headers=HEADERS)
+        r = requests.post(url=f"{URL}/admin/tables/", json=mesa, headers=HEADERS)
         print(f"  Mesa {mesa['table_number']}: {r.status_code}")
 
 def agregar_menus():
@@ -83,16 +87,14 @@ def agregar_usuarios():
 
 def agregar_reservas_y_resenas():
     usuarios_resenas = [
-        {"email": "test1@restaurant.com",  "password": "pass1234", "table_id": 1, "fecha": "2026-06-01", "hora": "20", "description": "Excelente atención y muy buena comida. Volveré sin dudas.", "stars": 5},
-        {"email": "test2@restaurant.com",  "password": "pass1234", "table_id": 2, "fecha": "2026-06-03", "hora": "21", "description": "La comida estuvo bien pero esperaba algo mejor por el precio.", "stars": 3},
-        {"email": "test3@restaurant.com",  "password": "pass1234", "table_id": 3, "fecha": "2026-06-05", "hora": "20", "description": "Buena experiencia en general, aunque el servicio tardó un poco.", "stars": 4},
+        {"email": "test1@restaurant.com", "password": "pass1234", "table_id": 1, "fecha": "2026-07-01", "hora": "20", "description": "Excelente atención y muy buena comida. Volveré sin dudas.", "stars": 5},
+        {"email": "test2@restaurant.com", "password": "pass1234", "table_id": 2, "fecha": "2026-07-03", "hora": "21", "description": "La comida estuvo bien pero esperaba algo mejor por el precio.", "stars": 3},
+        {"email": "test3@restaurant.com", "password": "pass1234", "table_id": 3, "fecha": "2026-07-05", "hora": "20", "description": "Buena experiencia en general, aunque el servicio tardó un poco.", "stars": 4},
     ]
 
     print("Agregando reservas y reseñas...")
-    from database.db import get_connection
 
     for datos in usuarios_resenas:
-        # Login con el usuario
         headers_usuario = {"Content-Type": "application/json"}
         r = requests.post(url=f"{URL}/public/login/", json={"email": datos["email"], "password": datos["password"]}, headers=headers_usuario)
         if r.status_code != 200:
@@ -101,11 +103,11 @@ def agregar_reservas_y_resenas():
         token_usuario = r.json()["token"]
         headers_usuario["Authorization"] = f"Bearer {token_usuario}"
 
-        # Crear reserva
         r = requests.post(url=f"{URL}/public/reservations/", json={
             "table_id": datos["table_id"],
             "fecha": datos["fecha"],
-            "hora": datos["hora"]
+            "hora": datos["hora"],
+            "people_amount": 2
         }, headers=headers_usuario)
 
         if r.status_code != 201:
@@ -115,7 +117,6 @@ def agregar_reservas_y_resenas():
         reserva_id = r.json()["reserva_id"]
         print(f"  Reserva creada (id={reserva_id}) para {datos['email']}")
 
-        # Cambiar estado a Arrived directo en BD
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("UPDATE reservations SET status_reservation = 'Arrived' WHERE id = %s", (reserva_id,))
@@ -123,7 +124,6 @@ def agregar_reservas_y_resenas():
         cursor.close()
         conn.close()
 
-        # Crear reseña
         r = requests.post(url=f"{URL}/public/reviews/", json={
             "reservation_id": reserva_id,
             "description": datos["description"],
@@ -134,40 +134,29 @@ def agregar_reservas_y_resenas():
 def probar_admin_reservaciones():
     print("Probando endpoints admin de reservaciones...")
 
-    # Listar todas las reservas
     r = requests.get(url=f"{URL}/admin/reservations/", headers=HEADERS)
     print(f"  GET /admin/reservations/: {r.status_code}")
-    if r.status_code != 200 or not r.json():
-        print("  No hay reservas para probar el resto, salteando.")
+    if r.status_code != 200:
+        print(f"  Ha ocurrido un error obteniendo las reservasciones. Error: {r.json()}.")
         return
-
+    print(r.json())
     reserva_id = r.json()[0]["id"]
     print(f"  Usando reserva id={reserva_id} para las pruebas")
 
-    # Ver una reserva específica
     r = requests.get(url=f"{URL}/admin/reservations/{reserva_id}", headers=HEADERS)
     print(f"  GET /admin/reservations/{reserva_id}: {r.status_code}")
 
-    # Cambiar estado a Confirmed
-    r = requests.post(url=f"{URL}/admin/reservations/{reserva_id}/estado",
-        json={"status_reservation": "Confirmed"}, headers=HEADERS)
+    r = requests.post(url=f"{URL}/admin/reservations/{reserva_id}/estado", json={"status_reservation": "Confirmed"}, headers=HEADERS)
     print(f"  POST estado=Confirmed: {r.status_code} — {r.json()}")
 
-    # Cambiar estado a Arrived
-    r = requests.post(url=f"{URL}/admin/reservations/{reserva_id}/estado",
-        json={"status_reservation": "Arrived"}, headers=HEADERS)
+    r = requests.post(url=f"{URL}/admin/reservations/{reserva_id}/estado", json={"status_reservation": "Arrived"}, headers=HEADERS)
     print(f"  POST estado=Arrived: {r.status_code} — {r.json()}")
 
-    # Crear una reserva nueva para probar el DELETE
     headers_usuario = {"Content-Type": "application/json"}
-    r = requests.post(url=f"{URL}/public/login/",
-        json={"email": "test1@restaurant.com", "password": "pass1234"},
-        headers=headers_usuario)
+    r = requests.post(url=f"{URL}/public/login/", json={"email": "test1@restaurant.com", "password": "pass1234"}, headers=headers_usuario)
     if r.status_code == 200:
         headers_usuario["Authorization"] = f"Bearer {r.json()['token']}"
-        r = requests.post(url=f"{URL}/public/reservations/",
-            json={"table_id": 4, "fecha": "2026-12-01", "hora": "20"},
-            headers=headers_usuario)
+        r = requests.post(url=f"{URL}/public/reservations/", json={"table_id": 4, "fecha": "2026-12-01", "hora": "20"}, headers=headers_usuario)
         if r.status_code == 201:
             nueva_id = r.json()["reserva_id"]
             r = requests.delete(url=f"{URL}/admin/reservations/{nueva_id}", headers=HEADERS)

@@ -21,17 +21,18 @@ def enviar_email_reserva(destinatario, nombre, reserva_id,
     # Leer credenciales del archivo .env
     remitente = os.getenv("EMAIL_USER")
     password  = os.getenv("EMAIL_PASS")
- 
+    if not (remitente or password):
+        raise Exception("No se encontraron las credenciales de email en el .env")
+    
+    print(f"Enviando email a {destinatario} usando {remitente} con password {password}\n\n\n\n")
     # Construir el mensaje
-    mensaje            = MIMEMultipart()
-    mensaje["From"]    = remitente
-    mensaje["To"]      = destinatario
+    mensaje = MIMEMultipart()
+    mensaje["From"] = remitente # type: ignore
+    mensaje["To"] = destinatario
     mensaje["Subject"] = f"Confirmacion de reservacion #{reserva_id}"
  
-    # Link de cancelacion usando el token (no el ID)
     link_cancelar = f"{FRONTEND_URL}/reservations/cancelar?token={qr_token}"
  
-    # Cuerpo del email en HTML
     cuerpo = f"""
     <h2>Hola {nombre}!</h2>
     <p>Tu reservacion <strong>#{reserva_id}</strong> fue registrada.</p>
@@ -60,8 +61,7 @@ def enviar_email_reserva(destinatario, nombre, reserva_id,
         )
         mensaje.attach(imagen_qr)
  
-    # Enviar usando Gmail con App Password
     with smtplib.SMTP("smtp.gmail.com", 587) as servidor:
-        servidor.starttls()                  # activa cifrado TLS
-        servidor.login(remitente, password)  # autenticacion
-        servidor.send_message(mensaje)       # envio
+        servidor.starttls()
+        servidor.login(remitente, password) # type: ignore
+        servidor.send_message(mensaje)

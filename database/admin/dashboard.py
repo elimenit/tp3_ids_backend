@@ -1,4 +1,4 @@
-from utils.helpers import _execute_query
+from database.helpers import _execute_query
 
 def db_get_reservations_dashboard(inicio: str, fin: str) -> dict:
     """Retorna todos los datos necesarios para el dashboard de reservas."""
