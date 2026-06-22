@@ -34,7 +34,7 @@ def create():
 @jwt_required()
 def update(service_id):
     data = request.get_json()
-    if not data:
+    if not data: 
         return jsonify({"message": "JSON inválido"}), 400
     result = service.update_service(service_id, data)
     if result:

@@ -4,12 +4,13 @@ ejecutenlo asi porque sino se ejecuta dos veces este archivo-> se ejecutan 2 vec
 """
 from datetime import timedelta
 
-from flask import Flask, app, jsonify
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
 from database.db import build_initial_database
 # Blueprints
+from routers.public.extra_services import public_bp_extra_services
 from routers.login import public_bp_login
 from routers.public.menus import public_bp_menu
 from routers.public.reservations import public_bp_reservations
@@ -20,6 +21,7 @@ from routers.admin.users import adm_bp_users
 from routers.admin.menus import adm_bp_menus
 from routers.admin.dashboards import adm_bp_dashboards
 from routers.admin.reservations import adm_bp_reservations
+from routers.admin.extra_services import adm_bp_extra_services
 from constants import SECRET_KEY, FLASK_HOST, FLASK_PORT
 
 def create_app()-> Flask:
@@ -41,10 +43,12 @@ def create_app()-> Flask:
     app.register_blueprint(public_bp_reservations, url_prefix="/public/reservations")
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
     app.register_blueprint(public_bp_reviews, url_prefix="/public/reviews")
+    app.register_blueprint(public_bp_extra_services, url_prefix="/public/extra_services")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
     app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboards")
     app.register_blueprint(adm_bp_menus, url_prefix="/admin/menus")
     app.register_blueprint(adm_bp_reservations, url_prefix="/admin/reservations")
+    app.register_blueprint(adm_bp_extra_services, url_prefix="/admin/extra_services")
    
    
     # Errores

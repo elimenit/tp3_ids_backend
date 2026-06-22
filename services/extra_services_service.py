@@ -15,6 +15,19 @@ class ExtraServicesService:
             print(f"Error al obtener servicios: {e}")
             return []
 
+    def get_active_services(self):
+        try:
+            conn = get_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM extra_services WHERE activo = TRUE")
+            services = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return services
+        except Error as e:
+            print(f"Error al obtener servicios activos: {e}")
+            return []
+
     def get_service_by_id(self, service_id):
         try:
             conn = get_connection()

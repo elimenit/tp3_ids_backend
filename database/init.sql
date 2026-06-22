@@ -21,6 +21,13 @@ CREATE TABLE menus (
     image_url VARCHAR(500)
 );
 
+CREATE TABLE extra_services (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(200) NOT NULL,
+    descripcion VARCHAR(500),
+    activo BOOLEAN DEFAULT TRUE
+);
+
 CREATE TABLE restaurant_tables (
     id INT AUTO_INCREMENT PRIMARY KEY,
     table_number INT NOT NULL UNIQUE,
