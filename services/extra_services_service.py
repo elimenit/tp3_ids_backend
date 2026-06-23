@@ -1,42 +1,32 @@
-from database.db import get_connection
 from mysql.connector import Error
+
+from database.public.extra_services import (
+    db_create_extra_service,
+    db_delete_extra_service,
+    db_get_active_extra_services,
+    db_get_all_extra_services,
+    db_get_extra_service,
+    db_update_extra_service
+)
 
 class ExtraServicesService:
     def get_all_services(self):
         try:
-            conn = get_connection()
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM extra_services")
-            services = cursor.fetchall()
-            cursor.close()
-            conn.close()
-            return services
+            return db_get_all_extra_services()
         except Error as e:
             print(f"Error al obtener servicios: {e}")
             return []
 
     def get_active_services(self):
         try:
-            conn = get_connection()
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM extra_services WHERE activo = TRUE")
-            services = cursor.fetchall()
-            cursor.close()
-            conn.close()
-            return services
+            return db_get_active_extra_services()
         except Error as e:
             print(f"Error al obtener servicios activos: {e}")
             return []
 
     def get_service_by_id(self, service_id):
         try:
-            conn = get_connection()
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM extra_services WHERE id = %s", (service_id,))
-            service = cursor.fetchone()
-            cursor.close()
-            conn.close()
-            return service
+            return db_get_extra_service(service_id)
         except Error as e:
             print(f"Error al obtener servicio: {e}")
             return None
@@ -46,20 +36,12 @@ class ExtraServicesService:
             nombre = data.get('nombre')
             descripcion = data.get('descripcion', '')
             activo = data.get('activo', True)
-            
+
             if not nombre:
                 return False
 
-            conn = get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO extra_services (nombre, descripcion, activo) VALUES (%s, %s, %s)",
-                (nombre, descripcion, activo)
-            )
-            conn.commit()
-            cursor.close()
-            conn.close()
-            return True
+            new_id = db_create_extra_service(nombre, descripcion, activo)
+            return new_id is not None
         except Error as e:
             print(f"Error al crear servicio: {e}")
             return False
@@ -70,31 +52,14 @@ class ExtraServicesService:
             descripcion = data.get('descripcion')
             activo = data.get('activo')
 
-            conn = get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE extra_services SET nombre=%s, descripcion=%s, activo=%s WHERE id=%s",
-                (nombre, descripcion, activo, service_id)
-            )
-            conn.commit()
-            result = cursor.rowcount > 0
-            cursor.close()
-            conn.close()
-            return result
+            return db_update_extra_service(service_id, nombre, descripcion, activo)
         except Error as e:
             print(f"Error al actualizar servicio: {e}")
             return False
 
     def delete_service(self, service_id):
         try:
-            conn = get_connection()
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM extra_services WHERE id = %s", (service_id,))
-            conn.commit()
-            result = cursor.rowcount > 0
-            cursor.close()
-            conn.close()
-            return result
+            return db_delete_extra_service(service_id)
         except Error as e:
             print(f"Error al eliminar servicio: {e}")
             return False
