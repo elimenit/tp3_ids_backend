@@ -28,6 +28,14 @@ CREATE TABLE extra_services (
     activo BOOLEAN DEFAULT TRUE
 );
 
+INSERT INTO extra_services (nombre, descripcion, activo)
+SELECT 'Estacionamiento', 'Amplio estacionamiento propio para clientes, con espacios amplios y acceso rápido al local.', TRUE
+WHERE NOT EXISTS (SELECT 1 FROM extra_services WHERE nombre = 'Estacionamiento');
+
+INSERT INTO extra_services (nombre, descripcion, activo)
+SELECT 'Acceso para discapacitados', 'Rampas y accesos adaptados, baños accesibles y pasillos amplios para movilidad reducida.', TRUE
+WHERE NOT EXISTS (SELECT 1 FROM extra_services WHERE nombre = 'Acceso para discapacitados');
+
 CREATE TABLE restaurant_tables (
     id INT AUTO_INCREMENT PRIMARY KEY,
     table_number INT NOT NULL UNIQUE,

@@ -68,3 +68,19 @@ def db_delete_extra_service(service_id: int) -> bool:
     cursor.close()
     conn.close()
     return affected > 0
+
+
+def db_remove_duplicate_extra_services() -> int:
+    """
+    Elimina filas duplicadas en la tabla `extra_services` dejando la de menor id.
+    Retorna la cantidad de filas eliminadas (si es posible obtenerla), o 0.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    query = "DELETE e1 FROM extra_services e1 INNER JOIN extra_services e2 WHERE e1.id > e2.id AND e1.nombre = e2.nombre;"
+    cursor.execute(query)
+    deleted = cursor.rowcount if hasattr(cursor, 'rowcount') else 0
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return deleted
