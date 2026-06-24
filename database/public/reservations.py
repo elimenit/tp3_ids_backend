@@ -19,7 +19,6 @@ def db_get_reservation_by_id(reservation_id) -> dict | None:
         WHERE r.id = %s
     """
     results = _execute_query(query, (reservation_id,))
-    print(f"db_get_reservation_by_id({reservation_id}) -> {results}")
     return results[0] if results else None
 
 
@@ -92,7 +91,6 @@ def db_check_reservation_date(reservation_id: int) -> bool:
 
 def db_reservation_not_available(fecha: str, table_id: int) -> bool:
     """Revisa si una mesa ya se encuentra reservada para ese día"""
-    print('chequdnadnsodnasondsoando')
     return bool(_execute_query("""
         SELECT 1 FROM reservations
         WHERE DATE(reservation_datetime) = %s 

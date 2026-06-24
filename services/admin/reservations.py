@@ -32,7 +32,6 @@ def update_reservation(reservation_id: int, updates: dict) -> tuple[Response | s
     - Existencia de usuario
     - Estado de reserva ingresado 
     """
-    print(f"Actualizando reserva {reservation_id} con los siguientes cambios: {updates}")
     if not updates:
         return error_response("Error en la actualización", "No hay campos para actualizar.", 400)
 
@@ -55,7 +54,6 @@ def update_reservation(reservation_id: int, updates: dict) -> tuple[Response | s
     table_id = updates.get('table_id')
     amount = updates.get('people_amount')
     if table_id:
-        print('chequeando mesa... \n')
         if not db_table_exists(table_id):
             return error_response('Mesa no encontrada', f'La mesa de número [{table_id}] no ha sido encontrada.', 404)
 

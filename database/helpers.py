@@ -8,7 +8,6 @@ def _execute_query(query: str, params: tuple = ()) -> list[dict]:
                 cursor.execute(query, params)
                 return cursor.fetchall()  # type: ignore
     except Exception as e:
-        print(f'error en select {e}')
         raise Exception('Ha ocurrido un error en el servidor. Inténtelo de nuevo más tarde.')
 
 def _count_rows(table: str) -> int:
@@ -20,13 +19,11 @@ def _count_rows(table: str) -> int:
                 cursor.execute(query)
                 return cursor.fetchone()[0] # type: ignore
     except Exception as e:
-        print(f'error en cuenta {e}')
         raise Exception('Ha ocurrido un error en el servidor. Inténtelo de nuevo más tarde.')
 
 def _execute_update_query(query: str, params: tuple = (), return_lastrowid: bool = False) -> int:
     """Ejecuta una query que modifica la base de datos con los parámetros dados y retorna la cantidad de registros afectados.
     Acepta un parámetro opcional en caso de que se quiera recibir el ID del registro creado"""
-    print(f"\n\nQUERY DEL UPDATE {query} {str(params)}\n\n")
     try:
         with get_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
@@ -35,7 +32,6 @@ def _execute_update_query(query: str, params: tuple = (), return_lastrowid: bool
                 conn.commit()
                 return result # type: ignore
     except Exception as e:
-        print(f'error en update {e}')
         raise Exception('Ha ocurrido un error en el servidor. Inténtelo de nuevo más tarde.')
     
 def build_update_query(table: str, allowed_fields: set, updates: dict, id_field: str = "id") -> tuple[str, tuple]:
@@ -60,5 +56,4 @@ def build_update_query(table: str, allowed_fields: set, updates: dict, id_field:
     values = tuple(safe_updates.values())
 
     query = f"UPDATE {table} SET {', '.join(fields)} WHERE {id_field} = %s"
-    print(query)
     return query, values
