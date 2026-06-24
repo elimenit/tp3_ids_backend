@@ -16,13 +16,15 @@ configuracion_punto_env_docker() {
     echo -ne "MYSQL_PORT=3306\nFLASK_HOST='0.0.0.0'\nFLASK_PORT=15000\n" >> .env 
     echo -ne "SECRET_KEY='Clave_super_secreta_de_flask_seguridad'\n" >> .env
     echo -ne "EMAIL_PASS='vwfn zvuq oeem csyu'\nEMAIL_USER='restaurante.tp.uba.grupo53@gmail.com'\n" >> .env
-    echo -ne "API_URL='http://127.0.0.1:15000'" >> .env
+    echo -ne "API_URL='http://127.0.0.1:15000'\n" >> .env
     echo "[+] Archivo .env creado"
 }
 setting_env() {
     echo -ne "MYSQL_USER='root'\nMYSQL_NAME_DB='restaurant'\nMYSQL_PASSWORD='password'\nMYSQL_HOST='localhost'\n" > .env
     echo -ne "MYSQL_PORT=3306\nFLASK_HOST='0.0.0.0'\nFLASK_PORT=15000\n" >> .env 
     echo -ne "SECRET_KEY='Clave_super_secreta_de_flask_seguridad'\n" >> .env
+    echo -ne "API_URL='http://127.0.0.1:15000'\n" >> .env
+    echo -ne "EMAIL_PASS='vwfn zvuq oeem csyu'\nEMAIL_USER='restaurante.tp.uba.grupo53@gmail.com'\n" >> .env
     echo "[+] Archivo .env creado"
 }
 

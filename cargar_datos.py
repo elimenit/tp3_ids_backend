@@ -185,7 +185,6 @@ def main():
     agregar_mesas()
     agregar_menus()
     agregar_servicios_extras()
-    # Limpieza de duplicados existente (útil si el script se ejecutó antes)
     try:
         from database.public.extra_services import db_remove_duplicate_extra_services
         deleted = db_remove_duplicate_extra_services()
@@ -193,7 +192,6 @@ def main():
     except Exception as e:
         print(f"  No se pudo eliminar duplicados vía DB: {e}")
     agregar_usuarios()
-    agregar_reservas_y_resenas()
     probar_admin_reservaciones()
 
     print("=== Datos cargados correctamente ===")
