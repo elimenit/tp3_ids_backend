@@ -16,6 +16,7 @@ from routers.public.reservations import public_bp_reservations
 from routers.public.users import public_bp_users
 from routers.public.reviews import public_bp_reviews
 from routers.public.tables import public_bp_tables
+from routers.admin.tables import admin_bp_tables
 from routers.admin.users import adm_bp_users
 from routers.admin.menus import adm_bp_menus
 from routers.admin.dashboards import adm_bp_dashboards
@@ -24,15 +25,13 @@ from constants import SECRET_KEY, FLASK_HOST, FLASK_PORT
 
 def create_app()-> Flask:
     app = Flask(__name__)
-    app.config['JSON_AS_ASCII'] = False  # Para manejar tildes y Ñ en JSON
+    app.config['JSON_AS_ASCII'] = False  
     app.config['SECRET_KEY'] = SECRET_KEY
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15) # Tiempo de expiración del token JWT
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15) 
 
-    # 2. Administrar CORS
-    # Permite peticiones desde cualquier origen (puedes restringirlo en producción)
     CORS(app, resources={r"/*": {"origins": "*"}})
     
-    # 3. Configurar JWT para autenticación
+   
     jwt = JWTManager(app)
     
     app.register_blueprint(public_bp_login, url_prefix="/public/login")
@@ -41,6 +40,7 @@ def create_app()-> Flask:
     app.register_blueprint(public_bp_reservations, url_prefix="/public/reservations")
     app.register_blueprint(public_bp_users, url_prefix="/public/users")
     app.register_blueprint(public_bp_reviews, url_prefix="/public/reviews")
+    app.register_blueprint(admin_bp_tables, url_prefix="/admin/tables")
     app.register_blueprint(adm_bp_users, url_prefix="/admin/users")
     app.register_blueprint(adm_bp_dashboards, url_prefix="/admin/dashboards")
     app.register_blueprint(adm_bp_menus, url_prefix="/admin/menus")

@@ -21,6 +21,30 @@ def db_create_table(table_number: int, capacity: int, status: str)-> None:
     cursor.close()
     conn.close()
 
+def db_get_tables(status: str = 'available')-> list:
+    """Obtiene una lista de tablas disponibles.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+    SELECT id, table_number, capacity FROM restaurant_tables
+    WHERE status = %s;
+    """
+    cursor.execute(query, (status, ))
+    tables = cursor.fetchall()
+    print(tables)
+    models_tables = [
+        {
+            "id": table[0],
+            "number": table[1],
+            "capacity": table[2]
+        }
+        for table in tables
+    ]
+    print(models_tables)
+    return models_tables
+
 def db_get_table(table_numer: int)-> dict:
     pass
 

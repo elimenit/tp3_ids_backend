@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify
 from utils.error import error_response
-from database.public.tables import db_create_table
+from database.public.tables import db_create_table, db_get_tables
 
 public_bp_tables = Blueprint('public_tables', __name__)
 
 @public_bp_tables.route("/", methods=['GET'])
 def get():
-    pass
+    return jsonify(db_get_tables()), 200
 
 @public_bp_tables.route("/", methods=['POST'])
 def create():
@@ -17,7 +17,6 @@ def create():
             "Body Vacio",
             400
         )
-    print(body)
     table_number = body.get('table_number', None)
     capacity = body.get('capacity', None)
     status = body.get('status', None)
