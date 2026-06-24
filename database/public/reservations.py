@@ -1,307 +1,106 @@
+from database.helpers import _execute_query, build_update_query, _execute_update_query
 
-from database.db import get_connection
-
-
-def db_get_all_reservations():
-    """
-    Trae todas las reservaciones con datos del cliente y la mesa.
-    Usa JOIN porque esa informacion vive en tablas distintas.
-    """
-    try:
-        conn   = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        # dictionary=True hace que cada fila sea un diccionario
-        # fila['user_name'] en lugar de fila[0]
-        try:
-            cursor.execute("""
-                SELECT
-                    r.id,
-                    r.reservation_datetime,
-                    r.status_reservation,
-                    u.name  AS user_name,
-                    u.email AS user_email,
-                    t.table_number,
-                    t.capacity
-                FROM reservations r
-                JOIN users             u ON r.user_id  = u.id
-                JOIN restaurant_tables t ON r.table_id = t.id
-                ORDER BY r.reservation_datetime DESC
-            """)
-            reservations = cursor.fetchall()
-            return reservations
-        finally:
-            # finally se ejecuta SIEMPRE haya error o no
-            # garantiza que la conexion siempre se cierra
-            cursor.close()
-            conn.close()
-
-    except Exception as e:
-        print(f"Error en db_get_all_reservations: {e}")
-        return None
-
-
-def db_get_reservation_by_id(reservation_id):
+def db_get_reservation_by_id(reservation_id) -> dict | None:
     """
     Trae UNA reservacion por su ID.
-    Uso: admin viendo el detalle, o justo despues de crear una reservacion.
     Devuelve None si no existe.
     """
-    try:
-        conn   = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute("""
-                SELECT
-                    r.id,
-                    r.reservation_datetime,
-                    r.status_reservation,
-                    r.qr_token,
-                    u.name  AS user_name,
-                    u.email AS user_email,
-                    t.table_number,
-                    t.capacity
-                FROM reservations r
-                JOIN users             u ON r.user_id  = u.id
-                JOIN restaurant_tables t ON r.table_id = t.id
-                WHERE r.id = %s
-            """, (reservation_id,))
-            # (reservation_id,) con coma al final es una tupla de un elemento
-            # sin la coma seria solo un parentesis, no una tupla
-
-            reservation = cursor.fetchone()
-            # fetchone() devuelve solo la primera fila
-            # si no existe devuelve None
-            return reservation
-        finally:
-            cursor.close()
-            conn.close()
-
-    except Exception as e:
-        print(f"Error en db_get_reservation_by_id: {e}")
-        return None
+    query = """
+        SELECT
+            r.id as id,
+            r.reservation_datetime,
+            r.status_reservation,
+            u.email AS user_email,
+            u.name AS user_name,
+            r.table_id as table_number,
+            r.people_amount as people_amount
+        FROM reservations r
+        JOIN users u ON r.user_id  = u.id
+        WHERE r.id = %s
+    """
+    results = _execute_query(query, (reservation_id,))
+    return results[0] if results else None
 
 
-def db_get_reservations_by_user(user_id):
+def db_get_reservations_by_user(user_id) -> list[dict]:
     """Trae todas las reservaciones de un usuario específico."""
-    try:
-        conn   = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute("""
-                SELECT
-                    r.id,
-                    r.reservation_datetime,
-                    r.status_reservation,
-                    t.table_number,
-                    t.capacity
-                FROM reservations r
-                JOIN restaurant_tables t ON r.table_id = t.id
-                WHERE r.user_id = %s
-                ORDER BY r.reservation_datetime DESC
-            """, (user_id,))
-            return cursor.fetchall()
-        finally:
-            cursor.close()
-            conn.close()
-    except Exception as e:
-        print(f"Error en db_get_reservations_by_user: {e}")
-        return None
+    query = """
+        SELECT
+            r.id,
+            r.reservation_datetime,
+            r.status_reservation,
+            r.table_id as table_number,
+            r.people_amount
+        FROM reservations r
+        WHERE r.user_id = %s
+        ORDER BY r.reservation_datetime DESC
+    """
+    return _execute_query(query, (user_id,))
 
-
-def db_get_reservation_by_token(token):
+def db_get_reservation_by_token(token) -> dict:
     """
     Trae una reservacion por su token unico.
     Uso: cuando el cliente hace click en cancelar desde el email.
-
-    Por que no usar el ID para cancelar:
-    Los IDs son numeros consecutivos (1,2,3...) cualquiera podria
-    adivinarlos y cancelar reservaciones ajenas.
-    El token es aleatorio e imposible de adivinar.
     """
-    try:
-        conn   = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
-                "SELECT id, status_reservation FROM reservations WHERE qr_token = %s",
-                (token,)
-            )
-            reservation = cursor.fetchone()
-            return reservation
-        finally:
-            cursor.close()
-            conn.close()
+    query = "SELECT id, people_amount, table_id, status_reservation FROM reservations WHERE qr_token = %s"
+    results = _execute_query(query, (token,))
+    return results[0] if results else {}
 
-    except Exception as e:
-        print(f"Error en db_get_reservation_by_token: {e}")
-        return None
+def db_create_reservation(user_id: int, table_id: int, reservation_datetime: str, qr_token: str, people_amount: int) -> int | None:
+    reservation_id = _execute_update_query("""
+        INSERT INTO reservations
+        (user_id, table_id, reservation_datetime, status_reservation, qr_token, people_amount)
+        VALUES
+        (%s, %s, %s, 'Pending', %s, %s)
+        """, (user_id, table_id, reservation_datetime, qr_token, people_amount), return_lastrowid=True)
+    return reservation_id
 
+def db_update_reservation(id: int, updates: dict) -> None:
+    ALLOWED_FIELDS = {'user_id', 'table_id', 'reservation_datetime', 'status_reservation', 'people_amount'}
+    query, values = build_update_query('reservations', ALLOWED_FIELDS, updates)
+    params = values + (id,)
+    affected_rows = _execute_update_query(query, params)
+    if not affected_rows:
+        raise ValueError('No se han actualizado los campos. Es posible que los cambios propuestos sean idénticos a los valores actuales.')
+    
+def db_check_previous_amount(reservation_id: int, table_id: int) -> bool:
+    """Aplicada antes de hacer un cambio de mesa. 
+    En caso de que la cantidad de gente asignada previamente en la reserva exceda la capacidad de la nueva mesa, 
+    devuelve False. Caso contrario True"""
+    result = _execute_query("""
+        SELECT 1
+        FROM restaurant_tables
+        WHERE id = %s
+        AND capacity >= (SELECT people_amount FROM reservations WHERE id = %s)
+    """, (table_id, reservation_id))
+    return bool(result)
 
-def db_get_all_tables():
+def db_check_new_amount(reservation_id: int, amount: int) -> bool:
+    """Aplicada para cambio de cantidad de comensales"""
+    query = """
+        SELECT 1 FROM reservations r
+        JOIN restaurant_tables rt ON r.table_id = rt.id
+        WHERE r.id = %s AND rt.capacity >= %s
     """
-    Trae todas las mesas SIN filtro de disponibilidad.
-    Se usa cuando el usuario todavia no eligio fecha y hora.
-    """
-    try:
-        conn   = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute("""
-                SELECT id, table_number, capacity, price, status
-                FROM restaurant_tables
-                ORDER BY table_number
-            """)
-            tables = cursor.fetchall()
-            return tables
-        finally:
-            cursor.close()
-            conn.close()
+    result = _execute_query(query, (reservation_id, amount))
+    return bool(result)
 
-    except Exception as e:
-        print(f"Error en db_get_all_tables: {e}")
-        return None
+def db_check_reservation_date(reservation_id: int) -> bool:
+    """Revisa si una reserva es futura, en dicho caso devuelve True. Caso contrario False"""
+    return bool(_execute_query('SELECT 1 FROM reservations WHERE id = %s AND reservation_datetime > NOW()', (reservation_id,)))
 
+def db_reservation_not_available(fecha: str, table_id: int) -> bool:
+    """Revisa si una mesa ya se encuentra reservada para ese día"""
+    return bool(_execute_query("""
+        SELECT 1 FROM reservations
+        WHERE DATE(reservation_datetime) = %s 
+          AND table_id = %s
+          AND status_reservation NOT IN ('Cancelled')
+        LIMIT 1
+        """, (fecha, table_id)))
 
-def db_get_tables_availability(fecha, hora):
-    """
-    Trae todas las mesas con su estado para una fecha y hora.
-    Usa DOS queries simples en lugar de un query complejo.
+def db_cancel_reservation(reservation_id: int) -> int:
+    return _execute_update_query('UPDATE reservations SET status_reservation = "Cancelled" WHERE id = %s', (reservation_id,))
 
-    Query 1: todas las mesas
-    Query 2: que mesas estan ocupadas en ese horario
-    Python:  calcula el estado de cada mesa combinando los dos
-    """
-    try:
-        conn   = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            # ── QUERY 1: todas las mesas ──────────────────────────
-            cursor.execute("""
-                SELECT id, table_number, capacity, price, status
-                FROM restaurant_tables
-                ORDER BY table_number
-            """)
-            all_tables = cursor.fetchall()
-            # Resultado: lista de diccionarios, uno por mesa
-            # [
-            #   {'id':1, 'table_number':1, 'capacity':4, 'status':'available'},
-            #   {'id':2, 'table_number':2, 'capacity':4, 'status':'available'},
-            # ]
-
-            # ── QUERY 2: mesas con reservacion activa ese horario ─
-            cursor.execute("""
-                SELECT table_id
-                FROM reservations
-                WHERE DATE(reservation_datetime) = %s
-                AND HOUR(reservation_datetime)   = %s
-                AND status_reservation IN ('Pending', 'Confirmed')
-            """, (fecha, hora))
-
-            rows = cursor.fetchall()
-            # rows es una lista de diccionarios:
-            # [{'table_id': 1}, {'table_id': 3}]
-
-            # Armamos una lista con solo los IDs de las mesas ocupadas
-            # forma simple con for loop
-            occupied_ids = []
-            for row in rows:
-                occupied_ids.append(row['table_id'])
-            # occupied_ids queda asi: [1, 3]
-
-            # ── PYTHON: calcular estado de cada mesa ──────────────
-            for table in all_tables:
-
-                if table['id'] in occupied_ids:
-                    # Su ID esta en la lista de ocupadas
-                    # tiene una reservacion activa en ese horario
-                    table['estado'] = 'reserved'
-
-                elif table['status'] == 'occupied':
-                    # El admin la marco como ocupada en tiempo real
-                    table['estado'] = 'occupied'
-
-                else:
-                    # No esta en ninguna condicion, esta libre
-                    table['estado'] = 'available'
-
-            # Ahora all_tables tiene el campo 'estado' agregado:
-            # [
-            #   {'id':1, ..., 'estado': 'reserved'},
-            #   {'id':2, ..., 'estado': 'available'},
-            # ]
-            return all_tables
-
-        finally:
-            cursor.close()
-            conn.close()
-
-    except Exception as e:
-        print(f"Error en db_get_tables_availability: {e}")
-        return None
-
-
-def db_create_reservation(user_id, table_id, reservation_datetime, qr_token):
-    """
-    Inserta una reservacion nueva en la base de datos.
-    Estado inicial siempre es 'Pending'.
-    Devuelve el ID del registro creado.
-    """
-    try:
-        conn   = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                INSERT INTO reservations
-                    (user_id, table_id, reservation_datetime,
-                     status_reservation, qr_token)
-                VALUES (%s, %s, %s, 'Pending', %s)
-            """, (user_id, table_id, reservation_datetime, qr_token))
-
-            conn.commit()
-            # commit() confirma el INSERT en la base de datos
-            # sin commit() el registro no se guarda
-
-            new_id = cursor.lastrowid
-            # lastrowid es el ID que MySQL asigno al registro nuevo
-            return new_id
-
-        finally:
-            cursor.close()
-            conn.close()
-
-    except Exception as e:
-        print(f"Error en db_create_reservation: {e}")
-        return None
-
-
-def db_update_reservation_status(reservation_id, new_status):
-    """
-    Cambia el estado de una reservacion.
-    Devuelve True si cambio algo, False si no existia.
-    """
-    try:
-        conn   = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                UPDATE reservations
-                SET status_reservation = %s
-                WHERE id = %s
-            """, (new_status, reservation_id))
-
-            conn.commit()
-
-            # rowcount dice cuantas filas se modificaron
-            # si es 0 la reservacion no existia
-            if cursor.rowcount > 0:
-                return True
-            else:
-                return False
-
-        finally:
-            cursor.close()
-            conn.close()
-
-    except Exception as e:
-        print(f"Error en db_update_reservation_status: {e}")
-        return False
+def db_confirm_reservation(reservation_id: int) -> int:
+    return _execute_update_query('UPDATE reservations SET status_reservation = "Arrived" WHERE id = %s', (reservation_id,))

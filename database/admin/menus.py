@@ -1,32 +1,11 @@
+from database.helpers import _execute_query
 from database.db import get_connection
 
-def db_list_menus() -> list:
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    query = """
-    SELECT id, category, name, description, price, available, image_url
-    FROM menus
-    ORDER BY category, name;
-    """
-    cursor.execute(query)
-    rows = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    menus = []
-    for row in rows:
-        menus.append({
-            "id": row[0],
-            "category": row[1],
-            "name": row[2],
-            "description": row[3],
-            "price": float(row[4]),
-            "available": bool(row[5]),
-            "image_url": row[6]
-        })
-    return menus
+def db_list_menus(limit: int = 10, offset: int = 0) -> list:
+    return _execute_query('''
+    SELECT image_url, id, name, category, description, price, available
+    FROM menus ORDER BY category, name LIMIT %s OFFSET %s''', (limit, offset)
+    )
 
 def db_get_menu(menu_id: int) -> dict | None:
     conn = get_connection()

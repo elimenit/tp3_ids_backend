@@ -1,68 +1,79 @@
-"""Administracion de Usuarios.
-"""
-
-from flask import Blueprint, request
 from utils.error import error_response
-from database.admin.users import db_list_users
-from services.admin.users import validar_limit_offset
+from utils.auth import is_admin
+from services.admin.users import get_all_users, create_user, update_user, toggle_user_status
+
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 
 adm_bp_users = Blueprint("admin_users", __name__)
 
-@adm_bp_users.route(rule="/", methods=["GET"])
-def show()-> list:
-    """Obtiene una lista de Usuarios.\n
-    """
-    # Query Params del endpoint
-    limit: int = request.args.get('limit', 10, type=int)
-    offset: int = request.args.get('offset', 0, type=int)
-    if not validar_limit_offset(limit, offset):
-        return error_response(
-            "Limit u Offset Invalidos",
-            "Limit u offset fuera de rango",
-            400
-        )
-        
-    try:    
-        users = db_list_users(limit, offset)
-    except:         
-        return error_response(message=f"Exception: {e}", description="Base de Datos no Inicializada", status_code=500)
-    
-    return users
+@adm_bp_users.get(rule="/")
+@jwt_required()
+def show():
+    """Obtiene una lista de Usuarios."""
+    if not is_admin():
+        return error_response("Acceso no autorizado", "No tienes permisos para realizar esta acción", 403)
 
-@adm_bp_users.route(rule="/<int:id>", methods=["GET"])
-def get_user(id: int):
-    """Obtiene un Usuario.\n
-    """
-    query: str = "SELECT * FROM users WHERE id = %s"
+    limit = request.args.get('_limit', 10, type=int)
+    offset = request.args.get('_offset', 0, type=int)
+    users, users_count = get_all_users(limit, offset)
+    return jsonify({
+        "data": users,
+        "count": users_count
+    }), 200
+
+@adm_bp_users.post(rule="/")
+@jwt_required()
+def create():
+    """Crea un nuevo usuario."""
+    if not is_admin():
+        return error_response("Acceso no autorizado", "No tienes permisos para realizar esta acción", 403)
+
+    data = request.get_json()
+
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute(query, (id, ))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")
+        category = data.get("category", "normal")
 
-        if user is None:
-            return error_response(message=f"id no existente: {id}", description="Usuario no encontrado", status_code=404)
+        if not name or not email or not password:
+            return error_response('Error durante la creación de usuario', 'Se deben proveer nombre, email, constraseña y categoría.', 400)
 
-    except Exception as e:
-        return error_response(message=f"Exception: {e}", description="Base de Datos no Inicializada", status_code=500)
-    return user
+        user = create_user(name, email, password, category)
+        return jsonify(user), 201
 
-@adm_bp_users.route(rule="/<int:id>", methods=["PUT"])
-def update(id: int):
-    """Actualizar Usuario.\n
-    """
-    pass
+    except (ValueError, Exception) as e:
+        return error_response('Error durante la creación de usuario', str(e), 400)
 
-@adm_bp_users.route(rule="/<int:id>", methods=["PATCH"])
-def partial_update(id: int):
-    """Actualizacion Parcial.\n
-    """
-    pass
 
-@adm_bp_users.route(rule="/<int:id>", methods=["DELETE"])
-def delete(id: int):
-    """ Eliminar un Usuario.\n
-    """
-    pass
+@adm_bp_users.put(rule="/<int:user_id>")
+@jwt_required()
+def update(user_id: int):
+    """Actualiza los datos de un usuario."""
+    if not is_admin():
+        return error_response("Acceso no autorizado", "No tienes permisos para realizar esta acción", 403)
+
+    data = request.get_json()
+
+    try:
+        update_user(user_id, data)
+        return jsonify({"mensaje": "Usuario actualizado correctamente"}), 200
+
+    except (ValueError, Exception) as e:
+        return error_response('Error durante la actualizacion.', str(e), 400)
+
+
+@adm_bp_users.delete(rule="/<int:user_id>")
+@jwt_required()
+def delete(user_id: int):
+    """Alterna el estado del usuario entre activo e inactivo."""
+    if not is_admin():
+        return error_response("Acceso no autorizado", "No tienes permisos para realizar esta acción", 403)
+
+    try:
+        new_status = toggle_user_status(user_id)
+        return jsonify({"mensaje": "Estado actualizado correctamente", "status": new_status}), 200
+
+    except (ValueError, Exception) as e:
+        return error_response('Error durante la alternación de estado.', str(e), 400)

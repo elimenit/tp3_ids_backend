@@ -114,8 +114,6 @@ def update_user_partial(user_id: int, updates: dict) -> str:
     if not updates:
         raise ValueError("No hay campos para actualizar")
     
-    print(updates)
-
     processed_updates = {}
     
     if 'name' in updates:

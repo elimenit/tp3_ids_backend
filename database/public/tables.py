@@ -1,24 +1,6 @@
-from database.db import get_connection
+from database.helpers import _execute_query
 
-def db_create_table(table_number: int, capacity: int, status: str, price: int)-> None:
-    conn = get_connection()
-    cursor = conn.cursor()
-    validate_query = """
-    SELECT id FROM restaurant_tables 
-    WHERE table_number = %s;
-    """
-    cursor.execute(validate_query, (table_number, ))
-    table_id = cursor.fetchone()
-    if table_id :
-        raise Exception("El Usuario Ya existe!")
-    query = """
-    INSERT INTO restaurant_tables(table_number, capacity, status, price)
-    VALUES (%s, %s, %s, %s);
-    """
-    cursor.execute(query, (table_number, capacity, status, price))
-    conn.commit()
-    cursor.close()
-    conn.close()    
-
-def db_get_table(table_numer: int)-> dict:
-    pass
+def db_get_active_tables(limit: int, offset: int) -> tuple[list[dict], int]:
+    tables = _execute_query('SELECT id, capacity FROM restaurant_tables WHERE status = "active" ORDER BY id LIMIT %s OFFSET %s', (limit, offset))
+    count = _execute_query('SELECT COUNT(*) as total FROM restaurant_tables WHERE status = "active"')[0]['total']
+    return tables, count

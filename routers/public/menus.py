@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from database.public.menus import db_get_menus, db_get_menu
 from utils.error import error_response
 
+
 public_bp_menu = Blueprint("public_menus", __name__)
 
 @public_bp_menu.route("/", methods=["GET"])

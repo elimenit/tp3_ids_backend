@@ -3,6 +3,8 @@ import os
 
 load_dotenv()
 
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
 MYSQL_USER = os.getenv('MYSQL_USER')
 MYSQL_NAME_DB = os.getenv('MYSQL_NAME_DB')
 MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')

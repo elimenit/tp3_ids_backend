@@ -9,3 +9,4 @@ venv
 # Files Hidden
 **/**/.*
 # Verificar con git status que es lo que suben
+static/qr_codes/

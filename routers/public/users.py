@@ -26,7 +26,6 @@ def create():
 @jwt_required()
 def get_user():
     user_id = int(get_jwt_identity())
-    print(f"user_id: {user_id}")
     user = obtain_user(user_id)
     return jsonify(user), 200
 
