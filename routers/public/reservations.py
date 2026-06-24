@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from services.public.reservations import service_get_my_reservations, service_get_reservation, service_create_reservation, service_cancel_by_token
+from services.public.reservations import service_get_my_reservations, service_get_reservation, service_create_reservation, service_cancel_by_token, qr_confirm_reservation
 from utils.error import error_response
 
 public_bp_reservations = Blueprint("public_reservations", __name__)
@@ -82,3 +82,10 @@ def cancelar_por_token():
         return jsonify({"mensaje": mensaje}), 200
     else:
         return jsonify({"error": mensaje}), 400
+    
+@public_bp_reservations.route("/confirm/<string:qr_token>", methods=["PATCH"])
+def qr_confrim(qr_token: str):
+    error, code = qr_confirm_reservation(qr_token)
+    if error:
+        return error, code
+    return jsonify(), 204

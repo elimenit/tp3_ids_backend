@@ -1,5 +1,4 @@
 from database.helpers import _execute_query, build_update_query, _execute_update_query
-from database.db import get_connection
 
 def db_get_reservation_by_id(reservation_id) -> dict | None:
     """
@@ -39,23 +38,23 @@ def db_get_reservations_by_user(user_id) -> list[dict]:
     """
     return _execute_query(query, (user_id,))
 
-def db_get_reservation_by_token(token) -> dict | None:
+def db_get_reservation_by_token(token) -> dict:
     """
     Trae una reservacion por su token unico.
     Uso: cuando el cliente hace click en cancelar desde el email.
     """
     query = "SELECT id, status_reservation FROM reservations WHERE qr_token = %s"
     results = _execute_query(query, (token,))
-    return results[0] if results else None
+    return results[0] if results else {}
 
 def db_create_reservation(user_id: int, table_id: int, reservation_datetime: str, qr_token: str, people_amount: int) -> int | None:
-    rows = _execute_update_query("""
+    reservation_id = _execute_update_query("""
         INSERT INTO reservations
         (user_id, table_id, reservation_datetime, status_reservation, qr_token, people_amount)
         VALUES
         (%s, %s, %s, 'Pending', %s, %s)
-        """, (user_id, table_id, reservation_datetime, qr_token, people_amount))
-    return rows
+        """, (user_id, table_id, reservation_datetime, qr_token, people_amount), return_lastrowid=True)
+    return reservation_id
 
 def db_update_reservation(id: int, updates: dict) -> None:
     ALLOWED_FIELDS = {'user_id', 'table_id', 'reservation_datetime', 'status_reservation', 'people_amount'}
@@ -90,3 +89,20 @@ def db_check_new_amount(reservation_id: int, amount: int) -> bool:
 def db_check_reservation_date(reservation_id: int) -> bool:
     """Revisa si una reserva es futura, en dicho caso devuelve True. Caso contrario False"""
     return bool(_execute_query('SELECT 1 FROM reservations WHERE id = %s AND reservation_datetime > NOW()', (reservation_id,)))
+
+def db_reservation_not_available(fecha: str, table_id: int) -> bool:
+    """Revisa si una mesa ya se encuentra reservada para ese día"""
+    print('chequdnadnsodnasondsoando')
+    return bool(_execute_query("""
+        SELECT 1 FROM reservations
+        WHERE DATE(reservation_datetime) = %s 
+          AND table_id = %s
+          AND status_reservation NOT IN ('Cancelled')
+        LIMIT 1
+        """, (fecha, table_id)))
+
+def db_cancel_reservation(reservation_id: int) -> int:
+    return _execute_update_query('UPDATE reservations SET status_reservation = "Cancelled" WHERE id = %s', (reservation_id,))
+
+def db_confirm_reservation(reservation_id: int) -> int:
+    return _execute_update_query('UPDATE reservations SET status_reservation = "Arrived" WHERE id = %s', (reservation_id,))

@@ -2,8 +2,7 @@ import secrets
 
 from werkzeug import Response
 
-from database.public.users import db_get_user
-from database.admin.tables import db_check_table_capacity, db_table_exists, get_table_by_id
+from database.admin.tables import db_check_table_capacity, db_table_exists
 from database.public.reservations import (
     db_get_reservation_by_id,
     db_get_reservations_by_user,
@@ -11,14 +10,14 @@ from database.public.reservations import (
     db_create_reservation,
     db_check_previous_amount,
     db_check_new_amount,
+    db_reservation_not_available,
+    db_cancel_reservation,
+    db_confirm_reservation
 )
 
 from utils.error import error_response
 from utils.qr_generator import generar_qr
 from utils.email_sender import enviar_email_reserva
-from utils.validators import validar_limit_offset
-from database.helpers import _count_rows
-
 
 def validate_table_capacity(table_id: int | None, amount: int | None, reservation_id: int) -> bool:
     """
@@ -80,6 +79,9 @@ def service_create_reservation(data: dict, user_id: int) -> tuple[None | Respons
     qr_token = secrets.token_urlsafe(16)    
     reservation_datetime = f"{fecha} {int(hora):02d}:00:00" # type: ignore
 
+    if db_reservation_not_available(fecha, table_id): # type: ignore
+        return error_response('Error', f'La mesa seleccionada ya está ocupada para el día {fecha}.', 409)
+
     reserva_id = db_create_reservation(user_id, table_id, reservation_datetime, qr_token, people_amount) # type: ignore
     if not reserva_id:
         return error_response('Error al crear la reservacion', 'No se pudo guardar la reservacion en la base de datos', 500)
@@ -100,7 +102,10 @@ def service_create_reservation(data: dict, user_id: int) -> tuple[None | Respons
             qr_token = qr_token
         )
     except Exception as error_email:
-        print(f"Advertencia: el email no se envio. Motivo: {error_email}")
+        rows = db_cancel_reservation(reserva_id)
+        if not rows:
+            return error_response('Error', 'No se ha podido cancelar la reserva.', 500)
+        return error_response('Error', f"Advertencia: el email no se envio. Motivo: {error_email}", 500)
 
     return None, reserva_id
 
@@ -111,14 +116,11 @@ def service_cancel_by_token(token):
     El cliente llega aca desde el link del email.
     Devuelve (True, mensaje) o (False, mensaje_de_error)
     """
-
-    # Buscar la reservacion por token
     reserva = db_get_reservation_by_token(token)
 
     if reserva is None:
         return False, "Token invalido o reservacion no encontrada"
 
-    # Guardar el estado actual para verificar si se puede cancelar
     estado_actual = reserva['status_reservation']
 
     if estado_actual == 'Cancelled':
@@ -127,10 +129,19 @@ def service_cancel_by_token(token):
     if estado_actual == 'Arrived':
         return False, "No se puede cancelar una reservacion ya completada"
 
-    # Cambiar el estado a Cancelled
-    ok = db_update_reservation_status(reserva['id'], 'Cancelled')
+    ok = db_cancel_reservation(reserva['id'])
 
     if ok:
         return True, "Reservacion cancelada exitosamente"
     else:
         return False, "Error al cancelar la reservacion"
+    
+def qr_confirm_reservation(qr_token: str) -> tuple[None | Response, int]:
+    reservation = db_get_reservation_by_token(qr_token)
+    if reservation.get('status_reservation') != 'Arrived':
+        rows = db_confirm_reservation(reservation.get('id')) # type: ignore
+        if not rows:
+            return error_response('Error durante la confirmación.', 'Ha ocurrido un error durante la confirmación de la reserva.', 500)
+        else:
+            return None, 204
+    return error_response('Advertencia', 'No se ha confirmado la reserva, dado que ya se encuentra confirmada', 409)

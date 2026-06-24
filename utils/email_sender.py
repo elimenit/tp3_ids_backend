@@ -1,11 +1,9 @@
+from constants import FRONTEND_URL
 import smtplib
 import os
 from email.mime.multipart import MIMEMultipart
-from email.mime.text      import MIMEText
-from email.mime.image     import MIMEImage
- 
-FRONTEND_URL = "http://localhost:10000"  
- 
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
  
 def enviar_email_reserva(destinatario, nombre, reserva_id,
                           fecha, qr_path, qr_token):
@@ -17,15 +15,11 @@ def enviar_email_reserva(destinatario, nombre, reserva_id,
  
     Las credenciales vienen del .env, NUNCA van escritas en el codigo.
     """
- 
-    # Leer credenciales del archivo .env
     remitente = os.getenv("EMAIL_USER")
     password  = os.getenv("EMAIL_PASS")
     if not (remitente or password):
         raise Exception("No se encontraron las credenciales de email en el .env")
-    
-    print(f"Enviando email a {destinatario} usando {remitente} con password {password}\n\n\n\n")
-    # Construir el mensaje
+
     mensaje = MIMEMultipart()
     mensaje["From"] = remitente # type: ignore
     mensaje["To"] = destinatario
@@ -51,7 +45,6 @@ def enviar_email_reserva(destinatario, nombre, reserva_id,
     """
     mensaje.attach(MIMEText(cuerpo, "html"))
  
-    # Adjuntar la imagen del QR
     with open(qr_path, "rb") as archivo:
         imagen_qr = MIMEImage(archivo.read())
         imagen_qr.add_header(

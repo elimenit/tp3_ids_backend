@@ -23,16 +23,17 @@ def _count_rows(table: str) -> int:
         print(f'error en cuenta {e}')
         raise Exception('Ha ocurrido un error en el servidor. Inténtelo de nuevo más tarde.')
 
-def _execute_update_query(query: str, params: tuple = ()) -> int:
-    """Ejecuta una query que modifica la base de datos con los parámetros dados y retorna la cantidad de registros afectados."""
+def _execute_update_query(query: str, params: tuple = (), return_lastrowid: bool = False) -> int:
+    """Ejecuta una query que modifica la base de datos con los parámetros dados y retorna la cantidad de registros afectados.
+    Acepta un parámetro opcional en caso de que se quiera recibir el ID del registro creado"""
     print(f"\n\nQUERY DEL UPDATE {query} {str(params)}\n\n")
     try:
         with get_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
                 cursor.execute(query, params)
-                rows_af = cursor.rowcount 
+                result = cursor.rowcount if not return_lastrowid else cursor.lastrowid
                 conn.commit()
-                return rows_af # type: ignore
+                return result # type: ignore
     except Exception as e:
         print(f'error en update {e}')
         raise Exception('Ha ocurrido un error en el servidor. Inténtelo de nuevo más tarde.')
