@@ -43,7 +43,7 @@ def db_get_reservation_by_token(token) -> dict:
     Trae una reservacion por su token unico.
     Uso: cuando el cliente hace click en cancelar desde el email.
     """
-    query = "SELECT id, status_reservation FROM reservations WHERE qr_token = %s"
+    query = "SELECT id, people_amount, table_id, status_reservation FROM reservations WHERE qr_token = %s"
     results = _execute_query(query, (token,))
     return results[0] if results else {}
 

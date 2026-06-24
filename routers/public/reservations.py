@@ -88,4 +88,5 @@ def qr_confrim(qr_token: str):
     error, code = qr_confirm_reservation(qr_token)
     if error:
         return error, code
-    return jsonify(), 204
+    print(error)
+    return jsonify(error), 200

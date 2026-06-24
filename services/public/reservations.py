@@ -136,12 +136,13 @@ def service_cancel_by_token(token):
     else:
         return False, "Error al cancelar la reservacion"
     
-def qr_confirm_reservation(qr_token: str) -> tuple[None | Response, int]:
+def qr_confirm_reservation(qr_token: str) -> tuple[dict | Response, int]:
     reservation = db_get_reservation_by_token(qr_token)
     if reservation.get('status_reservation') != 'Arrived':
         rows = db_confirm_reservation(reservation.get('id')) # type: ignore
         if not rows:
             return error_response('Error durante la confirmación.', 'Ha ocurrido un error durante la confirmación de la reserva.', 500)
         else:
-            return None, 204
+            reservation['status_reservation'] = 'Arrived'
+            return reservation, 200
     return error_response('Advertencia', 'No se ha confirmado la reserva, dado que ya se encuentra confirmada', 409)
