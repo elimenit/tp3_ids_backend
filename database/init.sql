@@ -21,6 +21,21 @@ CREATE TABLE menus (
     image_url VARCHAR(500)
 );
 
+CREATE TABLE extra_services (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(200) NOT NULL,
+    descripcion VARCHAR(500),
+    activo BOOLEAN DEFAULT TRUE
+);
+
+INSERT INTO extra_services (nombre, descripcion, activo)
+SELECT 'Estacionamiento', 'Amplio estacionamiento propio para clientes, con espacios amplios y acceso rápido al local.', TRUE
+WHERE NOT EXISTS (SELECT 1 FROM extra_services WHERE nombre = 'Estacionamiento');
+
+INSERT INTO extra_services (nombre, descripcion, activo)
+SELECT 'Acceso para discapacitados', 'Rampas y accesos adaptados, baños accesibles y pasillos amplios para movilidad reducida.', TRUE
+WHERE NOT EXISTS (SELECT 1 FROM extra_services WHERE nombre = 'Acceso para discapacitados');
+
 CREATE TABLE restaurant_tables (
     id INT AUTO_INCREMENT PRIMARY KEY,
     capacity INT NOT NULL,

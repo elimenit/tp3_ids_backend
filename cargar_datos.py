@@ -74,6 +74,31 @@ def agregar_menus():
         r = requests.post(url=f"{URL}/admin/menus/", json=menu, headers=HEADERS)
         print(f"  Menú {menu['name']}: {r.status_code}")
 
+def agregar_servicios_extras():
+    servicios = [
+        {"nombre": "Estacionamiento", "descripcion": "Amplio estacionamiento propio para clientes, con espacios amplios y acceso rápido al local.", "activo": True},
+        {"nombre": "Acceso para discapacitados", "descripcion": "Rampas y accesos adaptados, baños accesibles y pasillos amplios para movilidad reducida.", "activo": True},
+    ]
+    print("Agregando servicios extras...")
+
+    existentes = []
+    try:
+        r_get = requests.get(url=f"{URL}/public/extra_services/", headers={"Content-Type": "application/json"})
+        if r_get.status_code == 200:
+            existentes = [e.get('nombre') for e in r_get.json() if e.get('nombre')]
+    except Exception as e:
+        print(f"  No se pudo obtener la lista de servicios existentes: {e}")
+
+    for s in servicios:
+        if s['nombre'] in existentes:
+            print(f"  Servicio {s['nombre']} ya existe, omitiendo")
+            continue
+        r = requests.post(url=f"{URL}/admin/extra_services/", json=s, headers=HEADERS)
+        print(f"  Servicio {s['nombre']}: {r.status_code}")
+
+def eliminar_duplicados_servicios():
+    pass
+
 def agregar_usuarios():
     usuarios = [
         {"name": "test",   "email": "test1@restaurant.com", "password": "pass1234"},
@@ -159,6 +184,14 @@ def main():
 
     agregar_mesas()
     agregar_menus()
+    agregar_servicios_extras()
+    # Limpieza de duplicados existente (útil si el script se ejecutó antes)
+    try:
+        from database.public.extra_services import db_remove_duplicate_extra_services
+        deleted = db_remove_duplicate_extra_services()
+        print(f"  Duplicados eliminados: {deleted}")
+    except Exception as e:
+        print(f"  No se pudo eliminar duplicados vía DB: {e}")
     agregar_usuarios()
     agregar_reservas_y_resenas()
     probar_admin_reservaciones()
