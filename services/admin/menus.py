@@ -1,5 +1,5 @@
 from utils.validators import validar_limit_offset
-from utils.helpers import _count_rows
+from database.helpers import _count_rows
 from database.admin.menus import db_list_menus
 
 def validation_create_menu(category: str, name: str, description: str, price: float) -> bool:
@@ -9,7 +9,6 @@ def validation_create_menu(category: str, name: str, description: str, price: fl
             if isinstance(name, str) and name.strip() != '':
                 if isinstance(price, (int, float)) and price > 0:
                     is_valid = True
-    print(is_valid, '\n\n\n')
     return is_valid
 
 def validation_update_menu(category: str, name: str, description: str, price: float, available: bool) -> bool:

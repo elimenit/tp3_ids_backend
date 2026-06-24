@@ -1,5 +1,5 @@
 from database.db import get_connection
-from utils.helpers import build_update_query
+from database.helpers import build_update_query
 
 from datetime import datetime
 

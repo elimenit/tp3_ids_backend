@@ -1,7 +1,6 @@
 import qrcode
 import os
- 
-FRONTEND_URL = "http://localhost:10000"  
+from constants import FRONTEND_URL
  
 def generar_qr(reserva_id, qr_token):
     """
@@ -13,22 +12,15 @@ def generar_qr(reserva_id, qr_token):
  
     Devuelve la ruta del archivo generado.
     """
- 
-    # La URL que va codificada adentro del QR
-    url = f"{FRONTEND_URL}/reservations/cancelar?token={qr_token}"
- 
-    # Crear la imagen del QR
+    url = f"{FRONTEND_URL}/reservations/confirmar?token={qr_token}"
+
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(url)
     qr.make(fit=True)
     imagen = qr.make_image(fill_color="black", back_color="white")
- 
-    # Crear la carpeta si no existe
+
     carpeta = "static/qr_codes"
     os.makedirs(carpeta, exist_ok=True)
-    # exist_ok=True evita error si la carpeta ya existe
- 
-    # Guardar la imagen
     ruta = f"{carpeta}/reserva_{reserva_id}.png"
     imagen.save(ruta)
  

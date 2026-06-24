@@ -1,14 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from services.public.reservations import (
-    service_get_my_reservations,
-    service_get_reservation,
-    service_get_tables,
-    service_create_reservation,
-    service_cancel_by_token,
-    update_reservation
-)
+from services.public.reservations import service_get_my_reservations, service_get_reservation, service_create_reservation, service_cancel_by_token, qr_confirm_reservation
+from utils.error import error_response
 
 public_bp_reservations = Blueprint("public_reservations", __name__)
 
@@ -42,27 +36,6 @@ def get_my_reservations():
     return jsonify(reservas), 200
 
 
-@public_bp_reservations.route("/tables", methods=["GET"])
-def get_tables():
-    """
-    Devuelve todas las mesas con su disponibilidad.
-    Si llegan fecha y hora filtra por ese horario.
-    Si no llegan devuelve todas sin filtro.
-
-    GET /public/reservations/tables
-    GET /public/reservations/tables?fecha=2026-06-01&hora=20
-    """
-    fecha = request.args.get("fecha")
-    hora  = request.args.get("hora")
-
-    tables, error = service_get_tables(fecha, hora)
-
-    if error:
-        return jsonify({"error": error}), 500
-
-    return jsonify(tables), 200
-
-
 @public_bp_reservations.route("/", methods=["POST"])
 @jwt_required()
 def create():
@@ -77,20 +50,15 @@ def create():
     user_id = get_jwt_identity()
 
     datos = request.get_json()
-
-    if datos is None:
-        return jsonify({"error": "Se esperaba JSON en el body"}), 400
-
-    reserva_id, error = service_create_reservation(datos, user_id)
-
-    if error is not None:
-        if isinstance(error, dict) and error.get("tipo") == "mesa_no_disponible":
-            return jsonify(error), 409
-        return jsonify(error), 400
-
+    if not datos:
+        return error_response('Error en los datos', 'No se recibieron datos en formato JSON', 400)
+    res, code = service_create_reservation(datos, user_id)
+    if res:
+        return res, code
+    
     return jsonify({
-        "mensaje":    "Reservacion creada exitosamente",
-        "reserva_id": reserva_id
+        "message":    "Reservacion creada exitosamente",
+        "reserva_id": code
     }), 201
 
 
@@ -113,3 +81,10 @@ def cancelar_por_token():
         return jsonify({"mensaje": mensaje}), 200
     else:
         return jsonify({"error": mensaje}), 400
+    
+@public_bp_reservations.route("/confirm/<string:qr_token>", methods=["PATCH"])
+def qr_confrim(qr_token: str):
+    error, code = qr_confirm_reservation(qr_token)
+    if error:
+        return error, code
+    return jsonify(error), 200

@@ -1,4 +1,4 @@
-from utils.helpers import _execute_query
+from database.helpers import _execute_query
 from database.db import get_connection
 
 def db_list_menus(limit: int = 10, offset: int = 0) -> list:
