@@ -12,9 +12,7 @@ def enviar_email_reserva(destinatario, nombre, reserva_id,
     - Datos de la reservacion
     - Imagen del QR adjunta
     - Link para cancelar (usa el token, NUNCA el ID)
- 
-    Las credenciales vienen del .env, NUNCA van escritas en el codigo.
-    """
+     """
     remitente = os.getenv("EMAIL_USER")
     password  = os.getenv("EMAIL_PASS")
     if not (remitente or password):

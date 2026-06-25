@@ -67,6 +67,7 @@ Desarrollar una plataforma web integral para la gestión y venta en un restauran
 - **Panel administrativo:** ABM de menú (con imágenes y restricciones alimenticias), ABM de reseñas, ABM de servicios extra, gestión de reservas, visualización de estadísticas.
 - **Dashboards informativos:** gráficos en tiempo real de reservas, reseñas y otros indicadores del local, con filtros por rango temporal.
 - **Integración con servicios externos:** envío de mails de confirmación, generación dinámica de QR.
+- **Panel de servicios extra:** estacionamiento, eventos, restricciones alimenticias para personas celíacas/veganas...
 - **Dockerización:** proyecto containerizado para fácil despliegue.
 
 ---
@@ -107,6 +108,7 @@ La base de datos del sistema (`restaurant`) está estructurada bajo el modelo re
 
 * **users:** Almacena las cuentas de usuarios, permitiendo segmentar accesos y permisos mediante roles del sistema (`category`) y controlar su disponibilidad (`status`).
 * **menus:** Centraliza la oferta gastronómica del restaurante, registrando detalles del plato, precio, disponibilidad comercial y su imagen.
+* **extra_services:** Contiene todos los servicios extra con nombre, descripción y estado de actividad (si se muestra en pantalla o no).
 * **restaurant_tables:** Define la infraestructura física del salón, controlando el número de mesa, su capacidad de comensales y su estado de ocupación actual.
 * **reservations:** Gestiona las reservas de mesas vinculando clientes con mesas específicas, incluyendo el control de asistencia y un token único para validación por QR.
 * **reviews:** Permite a los usuarios calificar y dejar comentarios sobre sus reservaciones, con una restricción que limita la puntuación de 1 a 5 estrellas.
@@ -117,7 +119,7 @@ La base de datos del sistema (`restaurant`) está estructurada bajo el modelo re
 2. **Ciclo de Vida por Estados:** El modelo aprovecha tipos de datos enumerados (`ENUM`) específicos para reflejar con precisión el estado real del negocio en usuarios, mesas, reservas y envíos.
 
 #### 5.3.2 Diagrama Entidad-Relación
-![alt text](image.png)
+![alt text](diagrama-db.png)
 
 ### 5.4 Arquitectura del sistema
 
@@ -264,7 +266,7 @@ Para el manejo de usuario se optó por el generado de tokens temporales, los cua
 
 #### Seguridad
 - Las contraseñas se hashean antes de guardarse en BD.
-- Los tokens tienen expiración de 15 minutos.
+- Los tokens tienen expiración de 1 hora.
 - Se valida el token en cada request que requiera autenticación.
 - Las contraseñas se envían solo en la primera solicitud de login; después se usa el token.
 
@@ -302,24 +304,12 @@ Para cada uno de los paneles de gestión ABM se utilizó una plantilla `abm.html
 
 ## 6.8 Dockerización del proyecto
 
-El proyecto fue dockerizado para facilitar el despliegue consistente en diferentes entornos (desarrollo, testing, producción).
+El proyecto fue dockerizado para facilitar el despliegue consistente en diferentes entornos.
 
 **Estructura Docker:**
 - **Dockerfile para Backend:** imagen Python con Flask, dependencias (flask, mysql-connector, etc.).
+- **Imagen de MySql:** imagen de MySql, con el correspondiente volumen para la persistencia de datos.
 - **Dockerfile para Frontend:** imagen Python con Flask, Jinja2, dependencias.
-- **docker-compose.yml:** orquesta los servicios (backend, frontend, MySQL) en contenedores interconectados.
-
-**Ventajas:**
-- Todos los integrantes trabajan con el mismo entorno (mismas versiones de Python, librerías, BD).
-- Facilita el despliegue en cualquier servidor que tenga Docker.
-- Aísla dependencias: cambios en una imagen no afectan a otras.
-- Facilita testing automatizado.
-
-**Instrucciones de ejecución:**
-```bash
-docker-compose up
-```
-Esto levanta el frontend en puerto 5000, backend en 5001, y MySQL en 3306.
 
 ---
 
